@@ -11,7 +11,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.dooo.android"
+        applicationId "com.gospel.gospelapp"
         minSdkVersion 23
         targetSdkVersion 32
         versionCode 10

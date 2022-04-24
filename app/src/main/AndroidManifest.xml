@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.dooo.android">
+    package="com.gospel.gospelapp">
 
     <uses-permission
         android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
@@ -41,48 +41,48 @@
         android:theme="@style/Theme.Flex"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".UPI"
+            android:name="com.gospel.gospelapp.UPI"
             android:exported="false" />
         <activity
-            android:name=".PaypalPaymentGatway"
+            android:name="com.gospel.gospelapp.PaypalPaymentGatway"
             android:exported="false" />
         <activity
-            android:name=".Razorpay_Payment_gatway"
+            android:name="com.gospel.gospelapp.Razorpay_Payment_gatway"
             android:exported="false" />
         <activity
-            android:name=".LiveTVSearch"
+            android:name="com.gospel.gospelapp.LiveTVSearch"
             android:exported="true" />
-        <activity android:name=".GenreDetails" />
-        <activity android:name=".AllGenre" />
-        <activity android:name=".Downloads" />
-        <activity android:name=".PrivecyPolicy" />
-        <activity android:name=".TermsAndConditions" />
+        <activity android:name="com.gospel.gospelapp.GenreDetails" />
+        <activity android:name="com.gospel.gospelapp.AllGenre" />
+        <activity android:name="com.gospel.gospelapp.Downloads" />
+        <activity android:name="com.gospel.gospelapp.PrivecyPolicy" />
+        <activity android:name="com.gospel.gospelapp.TermsAndConditions" />
         <activity
-            android:name=".YoutubeLivePlayer"
+            android:name="com.gospel.gospelapp.YoutubeLivePlayer"
             android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity android:name=".InAppUpdate" />
-        <activity android:name=".LiveTv" />
+        <activity android:name="com.gospel.gospelapp.InAppUpdate" />
+        <activity android:name="com.gospel.gospelapp.LiveTv" />
         <activity
-            android:name=".EmbedPlayer"
+            android:name="com.gospel.gospelapp.EmbedPlayer"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
-            android:name=".Player"
+            android:name="com.gospel.gospelapp.Player"
             android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity android:name=".SubscriptionDetails" />
-        <activity android:name=".SubscriptionList" />
-        <activity android:name=".Subscription" />
-        <activity android:name=".Favorites" />
-        <activity android:name=".WebSeriesDetails" />
-        <activity android:name=".Maintenance" />
-        <activity android:name=".WebView" />
+        <activity android:name="com.gospel.gospelapp.SubscriptionDetails" />
+        <activity android:name="com.gospel.gospelapp.SubscriptionList" />
+        <activity android:name="com.gospel.gospelapp.Subscription" />
+        <activity android:name="com.gospel.gospelapp.Favorites" />
+        <activity android:name="com.gospel.gospelapp.WebSeriesDetails" />
+        <activity android:name="com.gospel.gospelapp.Maintenance" />
+        <activity android:name="com.gospel.gospelapp.WebView" />
         <activity
-            android:name=".TrailerPlayer"
+            android:name="com.gospel.gospelapp.TrailerPlayer"
             android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity android:name=".MovieDetails" />
-        <activity android:name=".LoginSignup" />
-        <activity android:name=".Home" />
+        <activity android:name="com.gospel.gospelapp.MovieDetails" />
+        <activity android:name="com.gospel.gospelapp.LoginSignup" />
+        <activity android:name="com.gospel.gospelapp.Home" />
         <activity
-            android:name=".Splash"
+            android:name="com.gospel.gospelapp.Splash"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

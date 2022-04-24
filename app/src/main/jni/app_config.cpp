@@ -2,8 +2,8 @@
 #include <string>
 
 
-std::string SERVER_URL = "API_SERVER_URL"; //Copy API SERVER URL From Admin Panal->API Setting And Paste Here
-std::string API_KEY = "API_KEY"; //Copy API KEY From Admin Panal->API Setting And Paste Here
+std::string SERVER_URL = "https://youtubedemo.hadashacloths.com"; //Copy API SERVER URL From Admin Panal->API Setting And Paste Here
+std::string API_KEY = "u743iLZPSEMUNoFf"; //Copy API KEY From Admin Panal->API Setting And Paste Here
 std::string ONESIGNAL_APP_ID = "ONESIGNAL_APP_ID"; //Copy ONESIGNAL APP ID From Onesignal And Paste Here
 bool allowVPN = false; // If false App Will Not Open In VPN
 bool FLAG_SECURE = false; //If True No Screenshort, No Screen Recording in Application
@@ -17,7 +17,7 @@ bool unity_ad_testMode = false;
 
 extern "C" JNIEXPORT jstring JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_getApiServerUrl(
+Java_com_gospel_gospelapp_AppConfig_getApiServerUrl(
         JNIEnv* env,
         jclass clazz) {
     return env->NewStringUTF(SERVER_URL.c_str());
@@ -25,7 +25,7 @@ Java_com_dooo_android_AppConfig_getApiServerUrl(
 
 extern "C" JNIEXPORT jstring JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_getApiKey(
+Java_com_gospel_gospelapp_AppConfig_getApiKey(
         JNIEnv* env,
 jclass clazz) {
 return env->NewStringUTF(API_KEY.c_str());
@@ -33,7 +33,7 @@ return env->NewStringUTF(API_KEY.c_str());
 
 extern "C" JNIEXPORT jstring JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_getOnesignalAppID(
+Java_com_gospel_gospelapp_AppConfig_getOnesignalAppID(
         JNIEnv* env,
         jclass clazz) {
     return env->NewStringUTF(ONESIGNAL_APP_ID.c_str());
@@ -41,25 +41,25 @@ Java_com_dooo_android_AppConfig_getOnesignalAppID(
 
 extern "C" JNIEXPORT jboolean JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_allowVPNStatus(JNIEnv *env, jclass clazz) {
+Java_com_gospel_gospelapp_AppConfig_allowVPNStatus(JNIEnv *env, jclass clazz) {
     return allowVPN;
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_flagSecureStatus(JNIEnv *env, jclass clazz) {
+Java_com_gospel_gospelapp_AppConfig_flagSecureStatus(JNIEnv *env, jclass clazz) {
     return FLAG_SECURE;
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_allowRootStatus(JNIEnv *env, jclass clazz) {
+Java_com_gospel_gospelapp_AppConfig_allowRootStatus(JNIEnv *env, jclass clazz) {
     return allowRoot;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_getYoutubeApiKey(
+Java_com_gospel_gospelapp_AppConfig_getYoutubeApiKey(
         JNIEnv* env,
         jclass clazz) {
     return env->NewStringUTF(YOUTUBE_API_KEY.c_str());
@@ -67,6 +67,6 @@ Java_com_dooo_android_AppConfig_getYoutubeApiKey(
 
 extern "C" JNIEXPORT jboolean JNICALL
 // Change "com_dooo_android" with your package name. // I.e "com_package_name" // DO NOT CHANGE OTHER THINGS
-Java_com_dooo_android_AppConfig_unityAdTestModeStatus(JNIEnv *env, jclass clazz) {
+Java_com_gospel_gospelapp_AppConfig_unityAdTestModeStatus(JNIEnv *env, jclass clazz) {
     return unity_ad_testMode;
 }
