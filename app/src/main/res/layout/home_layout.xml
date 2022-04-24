@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -22,7 +21,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" >
+                android:orientation="vertical">
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -87,8 +87,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
                     android:layout_marginTop="5dp"
-                    android:paddingStart="60dp"
-                    android:paddingEnd="60dp" />
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp" />
 
                 <RelativeLayout
                     android:id="@+id/ad_container"
@@ -102,27 +102,28 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:scaleType="fitXY"
-                        android:visibility="gone"/>
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:id="@+id/admob_nativead_template_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
+
                         <RelativeLayout
                             android:id="@+id/fBanner_View_Layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center"/>
+                            android:gravity="center" />
                     </LinearLayout>
+
                     <RelativeLayout
                         android:id="@+id/ad_View_Layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"/>
+                        android:gravity="center" />
 
                 </RelativeLayout>
-
 
 
                 <LinearLayout
@@ -130,63 +131,93 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/genre_list_Recycler_View"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp" />
                 </LinearLayout>
-
-
-
 
                 <LinearLayout
                     android:id="@+id/LiveTV_Layout"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Live_TV"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
+                            android:textSize="16sp"
                             android:textAlignment="viewStart"
-                            android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:orientation="horizontal">
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="250dp"
+                            android:layout_height="3dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_gravity="center"
+                            android:backgroundTint="#FFD600"
+                            app:cardCornerRadius="10dp"
+                            app:cardElevation="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="18dp"
+                            android:text="View all"
+                            android:textColor="@color/white" />
+
                         <ImageView
                             android:id="@+id/More_Live_TV"
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/list_text"
-                            android:layout_marginStart="10dp"
-                            android:layout_gravity="center"/>
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="5dp"
+                            android:background="@drawable/more_btn_bg"
+                            android:src="@drawable/forward" />
                     </LinearLayout>
+
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_Live_TV_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
-
-
 
 
                 <LinearLayout
@@ -194,27 +225,26 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/Continue_Playing"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
+                            android:layout_marginStart="12dp"
                             android:textAlignment="viewStart"
+                            android:fontFamily="@font/roboto_bold"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
+
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
@@ -225,29 +255,30 @@
                                 android:layout_height="22dp"
                                 android:layout_gravity="center"
                                 android:layout_marginEnd="5dp"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:foreground="?android:selectableItemBackground"
                                 android:src="@drawable/ic_baseline_delete_sweep_24"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?android:selectableItemBackground"/>
+                                app:layout_constraintTop_toTopOf="parent" />
                         </androidx.constraintlayout.widget.ConstraintLayout>
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/continuePlaying_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
-
-
 
 
                 <LinearLayout
@@ -255,36 +286,36 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
                         <TextView
                             android:id="@+id/popularMoviesTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Most_Popular_Movies"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
+
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_popularMovies_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
@@ -295,41 +326,46 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <androidx.cardview.widget.CardView
                             android:layout_width="5dp"
                             android:layout_height="40dp"
                             android:backgroundTint="@color/Red_Smooth"
                             app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+                            app:cardElevation="10dp" />
+
                         <TextView
                             android:id="@+id/popularWebSeriesTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Most_Popular_WebSeries"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_popularWebSeries_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
 
 
                 <LinearLayout
@@ -337,43 +373,38 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
                         <TextView
                             android:id="@+id/bywmTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Movies_Only_For_You"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_bywm_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent" />
 
                     </LinearLayout>
 
                 </LinearLayout>
-
-
-
 
 
                 <LinearLayout
@@ -381,85 +412,78 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
                         <TextView
                             android:id="@+id/bywwsTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/WebSeries_Only_For_You"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_bywws_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
 
-
-
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Recently_Added_Movies"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
+
                         <ImageView
                             android:id="@+id/More_Recent_Movies"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:src="@drawable/list_text"
+                            android:layout_gravity="center"
                             android:layout_marginStart="10dp"
-                            android:layout_gravity="center"/>
+                            android:src="@drawable/list_text" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_Recent_Movies_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
@@ -469,111 +493,92 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Recently_Added_Web_Series"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
+
                         <ImageView
                             android:id="@+id/More_Recent_Series"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:src="@drawable/list_text"
+                            android:layout_gravity="center"
                             android:layout_marginStart="10dp"
-                            android:layout_gravity="center"/>
+                            android:src="@drawable/list_text" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_Recent_Series_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Movies"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
+
                         <ImageView
                             android:id="@+id/More_Movies"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:src="@drawable/list_text"
+                            android:layout_gravity="center"
                             android:layout_marginStart="10dp"
-                            android:layout_gravity="center"/>
+                            android:src="@drawable/list_text" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_Movie_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
+                            android:layout_height="match_parent" />
 
                     </LinearLayout>
 
@@ -583,42 +588,44 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="5dp"
-                            android:layout_height="40dp"
-                            android:backgroundTint="@color/Red_Smooth"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="10dp"/>
+
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:text="@string/Web_Series"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
                             android:textAlignment="viewStart"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:layout_marginStart="5dp"/>
+                            android:textStyle="bold" />
+
                         <ImageView
                             android:id="@+id/More_WebSeries"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:src="@drawable/list_text"
+                            android:layout_gravity="center"
                             android:layout_marginStart="10dp"
-                            android:layout_gravity="center"/>
+                            android:src="@drawable/list_text" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/home_Web_Series_list_Recycler_View"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
+                            android:layout_height="match_parent" />
 
                     </LinearLayout>
 
@@ -629,13 +636,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scaleType="fitXY"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
                 <RelativeLayout
                     android:id="@+id/banner_View_Layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"/>
+                    android:gravity="center" />
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
