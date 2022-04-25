@@ -364,7 +364,7 @@ public class Home extends AppCompatActivity {
                 viewPager2.setVisibility(View.GONE);
                 break;
             default:
-                Log.d("Dooo", "Visiable");
+                Log.d("Gospel", "Visible");
         }
 
 
@@ -2546,6 +2546,8 @@ public class Home extends AppCompatActivity {
                                 }, error -> {
                                     // Do nothing because There is No Error if error It will return 0
                                 }) {
+
+
                                     @Override
                                     public Map<String, String> getHeaders() throws AuthFailureError {
                                         Map<String, String> params = new HashMap<>();

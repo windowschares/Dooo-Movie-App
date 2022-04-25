@@ -18,10 +18,9 @@
 
     <color name="TitleBar_BG">#29282D</color>
     <color name="Screen_Background">#29282D</color>
-
+    <color name="shimmer_color">#5D5D5E</color>
+    <color name="shimmer_color_secondary">#484849</color>
     <color name="Splash_TitleBar_BG">#1B242F</color>
-    <color name="Splash_Background">#1B242F</color>
-
     <color name="Home_TitleBar_BG">#29282D</color>
     <color name="Home_Background">#29282D</color>
 

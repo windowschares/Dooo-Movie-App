@@ -167,6 +167,7 @@
                 <ImageView
                     android:id="@+id/Movie_Details_Poster"
                     android:layout_width="match_parent"
+                    android:transitionName="image_small"
                     android:layout_height="match_parent"
                     android:scaleType="fitXY">
 
