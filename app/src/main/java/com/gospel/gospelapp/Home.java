@@ -53,6 +53,20 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.facebook.ads.AudienceNetworkAds;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.gospel.gospelapp.adepter.AllMovieListAdepter;
 import com.gospel.gospelapp.adepter.AllWebSeriesListAdepter;
 import com.gospel.gospelapp.adepter.ContinuePlayingListAdepter;
@@ -76,20 +90,6 @@ import com.gospel.gospelapp.list.WebSeriesList;
 import com.gospel.gospelapp.utils.HelperUtils;
 import com.gospel.gospelapp.utils.TinyDB;
 import com.gospel.gospelapp.utils.Utils;
-import com.facebook.ads.AudienceNetworkAds;
-import com.google.android.flexbox.FlexboxLayoutManager;
-import com.google.android.flexbox.JustifyContent;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.jaredrummler.materialspinner.MaterialSpinner;
 import com.jetradarmobile.snowfall.SnowfallView;
 import com.startapp.sdk.ads.banner.Banner;
@@ -116,64 +116,54 @@ import dev.shreyaspatil.MaterialDialog.MaterialDialog;
 import es.dmoral.toasty.Toasty;
 
 public class Home extends AppCompatActivity {
+    public static LinearLayout resume_Layout;
+    public static List<ResumeContent> resumeContents;
+    private final Handler sliderHandler = new Handler();
     String userData;
     String config;
     Context context = this;
-    private ViewPager2 viewPager2;
-    private final Handler sliderHandler = new Handler();
-
     String imageSliderType;
     List<ImageSliderItem> imageSliderItems;
-
     int movieImageSliderMaxVisible;
     int webseriesImageSliderMaxVisible;
-
     int adType;
-
     LinearLayout admobNativeadTemplateLayout;
-
     RelativeLayout bannerViewLayout;
     RelativeLayout adViewLayout;
-
     View forgotPasswordLayout;
-
     int shuffleContents;
-
-    private boolean vpnStatus;
-    private HelperUtils helperUtils;
-
     int showMessage;
     String messageTitle;
     String message;
-
     boolean removeAds = false;
     boolean playPremium = false;
     boolean downloadPremium = false;
-
     LinearLayout liveTvLayout;
     int liveTvVisiableInHome;
-
     int onlyPremium = 1;
-
     ResumeContentDatabase db;
-    public static LinearLayout resume_Layout;
-    public static List<ResumeContent> resumeContents;
-
     View rootView;
-
     LinearLayout genreLayout;
     RecyclerView genre_list_Recycler_View;
-
     int genre_visible_in_home;
-
     String tempLanguage = "";
+    private ViewPager2 viewPager2;
+    private final Runnable sliderRunnable = new Runnable() {
+        @Override
+        public void run() {
+            viewPager2.setCurrentItem(viewPager2.getCurrentItem() + 1);
+        }
+    };
+    private boolean vpnStatus;
+    private HelperUtils helperUtils;
+    //OnCreate Finish
 
     @SuppressLint("NonConstantResourceId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(AppConfig.FLAG_SECURE) {
+        if (AppConfig.FLAG_SECURE) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                     WindowManager.LayoutParams.FLAG_SECURE);
         }
@@ -181,13 +171,13 @@ public class Home extends AppCompatActivity {
         Window window = this.getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(ContextCompat.getColor(this,R.color.Home_TitleBar_BG));
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.Home_TitleBar_BG));
 
         setContentView(R.layout.activity_home);
 
 
         RequestQueue queue0 = Volley.newRequestQueue(this);
-        StringRequest sr0 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/register_device.php", response -> {
+        StringRequest sr0 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/register_device.php", response -> {
             Log.d("test", response);
         }, error -> {
             // Do nothing because There is No Error if error It will return 0
@@ -201,7 +191,7 @@ public class Home extends AppCompatActivity {
 
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -211,7 +201,7 @@ public class Home extends AppCompatActivity {
 
         rootView = findViewById(R.id.Home);
 
-        if(!AppConfig.allowVPN) {
+        if (!AppConfig.allowVPN) {
             //check vpn connection
             helperUtils = new HelperUtils(Home.this);
             vpnStatus = helperUtils.isVpnConnectionAvailable();
@@ -232,7 +222,7 @@ public class Home extends AppCompatActivity {
         Intent intent = getIntent();
         String notificationData = intent.getExtras().getString("Notification_Data");
         JsonObject notificationDataJsonObj = new Gson().fromJson(notificationData, JsonObject.class);
-        if(notificationDataJsonObj != null) {
+        if (notificationDataJsonObj != null) {
             String type = notificationDataJsonObj.get("Type").getAsString();
             switch (type) {
                 case "External_Browser": {
@@ -331,8 +321,8 @@ public class Home extends AppCompatActivity {
         });
 
         String openType = intent.getExtras().getString("OpenType");
-        if(openType != null) {
-            if(openType.equals("Movies")) {
+        if (openType != null) {
+            if (openType.equals("Movies")) {
                 bottomNavigationView.setSelectedItemId(R.id.Movies);
                 homeLayout.setVisibility(View.GONE);
                 searchLayout.setVisibility(View.GONE);
@@ -340,7 +330,7 @@ public class Home extends AppCompatActivity {
                 seriesLayout.setVisibility(View.GONE);
                 accountLayout.setVisibility(View.GONE);
                 movieList();
-            } else if(openType.equals("WebSeries")) {
+            } else if (openType.equals("WebSeries")) {
                 bottomNavigationView.setSelectedItemId(R.id.Series);
                 homeLayout.setVisibility(View.GONE);
                 searchLayout.setVisibility(View.GONE);
@@ -378,7 +368,6 @@ public class Home extends AppCompatActivity {
         }
 
 
-
         viewPager2.setClipToPadding(false);
         viewPager2.setClipChildren(false);
         viewPager2.setOffscreenPageLimit(3);
@@ -387,7 +376,7 @@ public class Home extends AppCompatActivity {
         CompositePageTransformer compositePageTransformer = new CompositePageTransformer();
         compositePageTransformer.addTransformer(new MarginPageTransformer(40));
         compositePageTransformer.addTransformer((page, position) -> {
-            float r = 1-Math.abs(position);
+            float r = 1 - Math.abs(position);
             page.setScaleY(0.85f + r * 0.20f);
             page.setScaleX(0.90f + r * 0.20f);
         });
@@ -403,12 +392,12 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        resume_Layout= findViewById(R.id.resume_Layout);
+        resume_Layout = findViewById(R.id.resume_Layout);
         db = ResumeContentDatabase.getDbInstance(this.getApplicationContext());
         resumeContents = db.resumeContentDao().getResumeContents();
         loadResumeContents(resumeContents);
 
-        if(resumeContents.isEmpty()) {
+        if (resumeContents.isEmpty()) {
             resume_Layout.setVisibility(View.GONE);
         } else {
             resume_Layout.setVisibility(View.VISIBLE);
@@ -425,7 +414,7 @@ public class Home extends AppCompatActivity {
             resumeContents = db.resumeContentDao().getResumeContents();
             loadResumeContents(resumeContents);
 
-            if(resumeContents.isEmpty()) {
+            if (resumeContents.isEmpty()) {
                 resume_Layout.setVisibility(View.GONE);
             } else {
                 resume_Layout.setVisibility(View.VISIBLE);
@@ -509,14 +498,14 @@ public class Home extends AppCompatActivity {
 
         ConstraintLayout genre_list_btn = findViewById(R.id.genre_list_btn);
         CardView cardView80 = findViewById(R.id.cardView80);
-        cardView80.setOnClickListener(view->{
+        cardView80.setOnClickListener(view -> {
             Intent favoriteContentsActivity = new Intent(Home.this, AllGenre.class);
             startActivity(favoriteContentsActivity);
         });
 
         CardView account = findViewById(R.id.account);
-        account.setOnClickListener(v->{
-            if(userData != null) {
+        account.setOnClickListener(v -> {
+            if (userData != null) {
                 final Dialog dialog = new Dialog(Home.this);
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setCancelable(false);
@@ -553,7 +542,7 @@ public class Home extends AppCompatActivity {
 
                     RequestQueue queue = Volley.newRequestQueue(this);
                     StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/update_account.php", response -> {
-                        if(response.equals("Account Updated Successfully")) {
+                        if (response.equals("Account Updated Successfully")) {
                             Toasty.success(context, "Account Updated Successfully!", Toast.LENGTH_SHORT, true).show();
                             Intent restartIntent = new Intent(Home.this, Splash.class);
                             startActivity(restartIntent);
@@ -607,7 +596,7 @@ public class Home extends AppCompatActivity {
 
         ConstraintLayout subscriptionBtn = findViewById(R.id.Subscription_Btn);
         subscriptionBtn.setOnClickListener(view -> {
-            if(userData != null) {
+            if (userData != null) {
                 Intent favoriteContentsActivity = new Intent(Home.this, Subscription.class);
                 startActivity(favoriteContentsActivity);
             } else {
@@ -639,7 +628,7 @@ public class Home extends AppCompatActivity {
         });
 
         CardView language = findViewById(R.id.language);
-        language.setOnClickListener(view->{
+        language.setOnClickListener(view -> {
             final Dialog dialog = new Dialog(Home.this);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             dialog.setCancelable(false);
@@ -681,7 +670,7 @@ public class Home extends AppCompatActivity {
             String appLanguage = tinyDB.getString("appLanguage");
 
 
-            if(appLanguage.equals("en") || appLanguage.equals("")) {
+            if (appLanguage.equals("en") || appLanguage.equals("")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.color.white));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -699,8 +688,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("Choose Your \nDisplay Language");
                 languageDialogSubHeader.setText("Please select one");
                 tempLanguage = "en";
-            }
-            else if(appLanguage.equals("hi")) {
+            } else if (appLanguage.equals("hi")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.color.white));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -718,8 +706,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("अपनी प्रदर्शन भाषा चुनें");
                 languageDialogSubHeader.setText("कृपया एक का चयन करें");
                 tempLanguage = "hi";
-            }
-            else if(appLanguage.equals("bn")) {
+            } else if (appLanguage.equals("bn")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.color.white));
@@ -737,8 +724,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("আপনার প্রদর্শন ভাষা \nচয়ন করুন");
                 languageDialogSubHeader.setText("অনুগ্রহপূর্বক একটা নির্বাচন করুন");
                 tempLanguage = "bn";
-            }
-            else if(appLanguage.equals("es")) {
+            } else if (appLanguage.equals("es")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -756,8 +742,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("Elija su idioma \nde visualización");
                 languageDialogSubHeader.setText("Por favor, seleccione uno");
                 tempLanguage = "es";
-            }
-            else if(appLanguage.equals("ru")) {
+            } else if (appLanguage.equals("ru")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -775,8 +760,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("Выберите язык \nотображения");
                 languageDialogSubHeader.setText("Пожалуйста, выберите один");
                 tempLanguage = "ru";
-            }
-            else if(appLanguage.equals("tr")) {
+            } else if (appLanguage.equals("tr")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -794,8 +778,7 @@ public class Home extends AppCompatActivity {
                 languageDialogHeader.setText("Görüntüleme Dilinizi \nSeçin");
                 languageDialogSubHeader.setText("Lütfen birini seçin");
                 tempLanguage = "tr";
-            }
-            else if(appLanguage.equals("zh")) {
+            } else if (appLanguage.equals("zh")) {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -816,8 +799,7 @@ public class Home extends AppCompatActivity {
             }
 
 
-
-            cardView_english.setOnClickListener(v1->{
+            cardView_english.setOnClickListener(v1 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.color.white));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -836,7 +818,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("Please select one");
                 tempLanguage = "en";
             });
-            cardView_hindi.setOnClickListener(v2->{
+            cardView_hindi.setOnClickListener(v2 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.color.white));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -855,7 +837,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("कृपया एक का चयन करें");
                 tempLanguage = "hi";
             });
-            cardView_bengali.setOnClickListener(v3->{
+            cardView_bengali.setOnClickListener(v3 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.color.white));
@@ -874,7 +856,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("অনুগ্রহপূর্বক একটা নির্বাচন করুন");
                 tempLanguage = "bn";
             });
-            cardView_spanish.setOnClickListener(v4->{
+            cardView_spanish.setOnClickListener(v4 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -893,7 +875,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("Por favor, seleccione uno");
                 tempLanguage = "es";
             });
-            cardView_russian.setOnClickListener(v5->{
+            cardView_russian.setOnClickListener(v5 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -912,7 +894,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("Пожалуйста, выберите один");
                 tempLanguage = "ru";
             });
-            cardView_turkish.setOnClickListener(v6->{
+            cardView_turkish.setOnClickListener(v6 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -931,7 +913,7 @@ public class Home extends AppCompatActivity {
                 languageDialogSubHeader.setText("Lütfen birini seçin");
                 tempLanguage = "tr";
             });
-            cardView_chaines.setOnClickListener(v7->{
+            cardView_chaines.setOnClickListener(v7 -> {
                 linearlayout_english.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_hindi.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
                 linearlayout_bengali.setBackground(AppCompatResources.getDrawable(context, R.drawable.language_dialog_bg));
@@ -952,24 +934,20 @@ public class Home extends AppCompatActivity {
             });
 
             ImageView Coupan_Dialog_save = dialog.findViewById(R.id.Coupan_Dialog_save);
-            Coupan_Dialog_save.setOnClickListener(vSave->{
-                if(tempLanguage.equals("en")) {
+            Coupan_Dialog_save.setOnClickListener(vSave -> {
+                if (tempLanguage.equals("en")) {
                     tinyDB.putString("appLanguage", "en");
-                } else if(tempLanguage.equals("hi")) {
+                } else if (tempLanguage.equals("hi")) {
                     tinyDB.putString("appLanguage", "hi");
-                }
-                else if(tempLanguage.equals("bn")) {
+                } else if (tempLanguage.equals("bn")) {
                     tinyDB.putString("appLanguage", "bn");
-                }
-                else if(tempLanguage.equals("es")) {
+                } else if (tempLanguage.equals("es")) {
                     tinyDB.putString("appLanguage", "es");
-                }
-                else if(tempLanguage.equals("ru")) {
+                } else if (tempLanguage.equals("ru")) {
                     tinyDB.putString("appLanguage", "ru");
-                } else if(tempLanguage.equals("tr")) {
+                } else if (tempLanguage.equals("tr")) {
                     tinyDB.putString("appLanguage", "tr");
-                }
-                else if(tempLanguage.equals("zh")) {
+                } else if (tempLanguage.equals("zh")) {
                     tinyDB.putString("appLanguage", "zh");
                 }
                 dialog.dismiss();
@@ -982,8 +960,8 @@ public class Home extends AppCompatActivity {
         });
 
         CardView report = findViewById(R.id.report);
-        report.setOnClickListener(v->{
-            if(userData != null) {
+        report.setOnClickListener(v -> {
+            if (userData != null) {
                 JsonObject jsonObject = new Gson().fromJson(userData, JsonObject.class);
                 String cUserID = String.valueOf(jsonObject.get("ID").getAsInt());
 
@@ -1054,8 +1032,8 @@ public class Home extends AppCompatActivity {
         });
 
         CardView request = findViewById(R.id.request);
-        request.setOnClickListener(v->{
-            if(userData != null) {
+        request.setOnClickListener(v -> {
+            if (userData != null) {
                 JsonObject jsonObject = new Gson().fromJson(userData, JsonObject.class);
                 String cUserID = String.valueOf(jsonObject.get("ID").getAsInt());
 
@@ -1159,8 +1137,6 @@ public class Home extends AppCompatActivity {
         });
 
 
-
-
         searchContentEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -1169,10 +1145,10 @@ public class Home extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(String.valueOf(searchContentEditText.getText()).equals("")) {
+                if (String.valueOf(searchContentEditText.getText()).equals("")) {
                     bigSearchLottieAnimation.setVisibility(View.VISIBLE);
                     searchLayoutRecyclerView.setVisibility(View.GONE);
-                } else  {
+                } else {
                     bigSearchLottieAnimation.setVisibility(View.GONE);
                     searchLayoutRecyclerView.setVisibility(View.VISIBLE);
 
@@ -1187,9 +1163,8 @@ public class Home extends AppCompatActivity {
         });
 
 
-
         //Ad Controller
-        if(!removeAds) {
+        if (!removeAds) {
             loadAd();
         } else {
             admobNativeadTemplateLayout.setVisibility(View.GONE);
@@ -1198,7 +1173,7 @@ public class Home extends AppCompatActivity {
         forgotPasswordLayout = findViewById(R.id.Forgot_Password_Layout);
         TextView changePassword = findViewById(R.id.Change_Password);
         changePassword.setOnClickListener(view -> {
-            if(changePassword.getText().toString().equals("Change Password")) {
+            if (changePassword.getText().toString().equals("Change Password")) {
                 HelperUtils.resetPassword(context);
             } else {
                 Intent loginSignupActivity = new Intent(Home.this, LoginSignup.class);
@@ -1234,11 +1209,11 @@ public class Home extends AppCompatActivity {
         builder.build();
 
         liveTvLayout = findViewById(R.id.LiveTV_Layout);
-        if(liveTvVisiableInHome == 0) {
+        if (liveTvVisiableInHome == 0) {
             liveTvLayout.setVisibility(View.GONE);
-        } else if(liveTvVisiableInHome == 1) {
+        } else if (liveTvVisiableInHome == 1) {
             liveTvLayout.setVisibility(View.VISIBLE);
-        } else  {
+        } else {
             liveTvLayout.setVisibility(View.VISIBLE);
         }
 
@@ -1246,7 +1221,7 @@ public class Home extends AppCompatActivity {
         includePremiumSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     onlyPremium = 1;
                 } else {
                     onlyPremium = 0;
@@ -1274,10 +1249,6 @@ public class Home extends AppCompatActivity {
         });
 
 
-
-
-
-
         /////////////
         LinearLayout movieFilterTag = findViewById(R.id.movieFilterTag);
         movieFilterTag.setOnClickListener(view -> {
@@ -1291,7 +1262,6 @@ public class Home extends AppCompatActivity {
 
             ImageView dialogClose = (ImageView) dialog.findViewById(R.id.dialogClose);
             dialogClose.setOnClickListener(v -> dialog.dismiss());
-
 
 
             dialog.show();
@@ -1311,19 +1281,17 @@ public class Home extends AppCompatActivity {
             dialogClose.setOnClickListener(v -> dialog.dismiss());
 
 
-
             dialog.show();
         });
 
     }
-    //OnCreate Finish
 
     void loadGenre() {
         List<GenreList> genreList = new ArrayList<>();
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_featured_genre.php", response -> {
-            if(!response.equals("No Data Avaliable")) {
-                if(genre_visible_in_home == 1) {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_featured_genre.php", response -> {
+            if (!response.equals("No Data Avaliable")) {
+                if (genre_visible_in_home == 1) {
                     genreLayout.setVisibility(View.VISIBLE);
                 }
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
@@ -1352,7 +1320,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -1364,7 +1332,7 @@ public class Home extends AppCompatActivity {
         List<ResumeContent> mData = resumeContents;
         List<ContinuePlayingList> continuePlayingList = new ArrayList<>();
 
-        for (int i=0; i<mData.size(); i++) {
+        for (int i = 0; i < mData.size(); i++) {
 
             int id = mData.get(i).getId();
             int contentID = mData.get(i).getContent_id();
@@ -1460,10 +1428,10 @@ public class Home extends AppCompatActivity {
             bannerViewLayout.addView(adViewFooter);
             adViewFooter.loadAd();
 
-        } else if(adType == 4) { //AdColony
+        } else if (adType == 4) { //AdColony
             admobNativeadTemplateLayout.setVisibility(View.GONE);
 
-            String[] AdColony_AD_UNIT_Zone_Ids = new String[] {AppConfig.AdColony_BANNER_ZONE_ID,AppConfig.AdColony_INTERSTITIAL_ZONE_ID};
+            String[] AdColony_AD_UNIT_Zone_Ids = new String[]{AppConfig.AdColony_BANNER_ZONE_ID, AppConfig.AdColony_INTERSTITIAL_ZONE_ID};
             AdColony.configure(this, AppConfig.AdColony_APP_ID, AdColony_AD_UNIT_Zone_Ids);
 
             AdColonyAdViewListener listener = new AdColonyAdViewListener() {
@@ -1473,7 +1441,7 @@ public class Home extends AppCompatActivity {
                 }
             };
             AdColony.requestAdView(AppConfig.AdColony_BANNER_ZONE_ID, listener, AdColonyAdSize.BANNER);
-        } else if(adType == 5) { //unityads
+        } else if (adType == 5) { //unityads
             admobNativeadTemplateLayout.setVisibility(View.GONE);
 
             IUnityAdsListener unityAdsListener = new IUnityAdsListener() {
@@ -1502,20 +1470,20 @@ public class Home extends AppCompatActivity {
 
                 }
             };
-            UnityAds.initialize (this, AppConfig.Unity_Game_ID, unityAdsListener, AppConfig.unity_ad_testMode);
-        } else if(adType == 6) { //Custom Ads
+            UnityAds.initialize(this, AppConfig.Unity_Game_ID, unityAdsListener, AppConfig.unity_ad_testMode);
+        } else if (adType == 6) { //Custom Ads
             admobNativeadTemplateLayout.setVisibility(View.GONE);
             adViewLayout.setVisibility(View.GONE);
             bannerViewLayout.setVisibility(View.GONE);
 
-            if(!AppConfig.Custom_Banner_url.equals("")) {
+            if (!AppConfig.Custom_Banner_url.equals("")) {
                 ImageView custom_banner_ad = findViewById(R.id.custom_banner_ad);
                 custom_banner_ad.setVisibility(View.VISIBLE);
                 Glide.with(context)
                         .load(AppConfig.Custom_Banner_url)
                         .into(custom_banner_ad);
                 custom_banner_ad.setOnClickListener(view -> {
-                    if(!AppConfig.Custom_Banner_click_url.equals("")) {
+                    if (!AppConfig.Custom_Banner_click_url.equals("")) {
                         switch (AppConfig.Custom_Banner_click_url_type) {
                             case 1:
                                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.Custom_Banner_click_url)));
@@ -1531,14 +1499,14 @@ public class Home extends AppCompatActivity {
                 });
             }
 
-            if(!AppConfig.Custom_Banner_url.equals("")) {
+            if (!AppConfig.Custom_Banner_url.equals("")) {
                 ImageView custom_footer_banner_ad = findViewById(R.id.custom_footer_banner_ad);
                 custom_footer_banner_ad.setVisibility(View.VISIBLE);
                 Glide.with(context)
                         .load(AppConfig.Custom_Banner_url)
                         .into(custom_footer_banner_ad);
                 custom_footer_banner_ad.setOnClickListener(view -> {
-                    if(!AppConfig.Custom_Banner_click_url.equals("")) {
+                    if (!AppConfig.Custom_Banner_click_url.equals("")) {
                         switch (AppConfig.Custom_Banner_click_url_type) {
                             case 1:
                                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(AppConfig.Custom_Banner_click_url)));
@@ -1584,8 +1552,8 @@ public class Home extends AppCompatActivity {
 
     void searchContent(String text) {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/search_content.php?search="+text+"&onlypremium="+onlyPremium, response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/search_content.php?search=" + text + "&onlypremium=" + onlyPremium, response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<SearchList> searchList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -1594,7 +1562,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -1625,7 +1593,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -1635,12 +1603,12 @@ public class Home extends AppCompatActivity {
 
     void customImageSlider() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_image_slider_items.php", this::onResponse, error -> {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_image_slider_items.php", this::onResponse, error -> {
             // Do nothing because There is No Error if error It will return 0
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -1650,8 +1618,8 @@ public class Home extends AppCompatActivity {
 
     void topMoviesImageSlider() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_image_slider_movie_list.php", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_image_slider_movie_list.php", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 int i = 0;
                 int maxVisible = movieImageSliderMaxVisible;
@@ -1678,7 +1646,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -1688,8 +1656,8 @@ public class Home extends AppCompatActivity {
 
     void topWebSeriesImageSlider() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_image_slider_webseries_list.php", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_image_slider_webseries_list.php", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 int i = 0;
                 int maxVisible = webseriesImageSliderMaxVisible;
@@ -1716,20 +1684,13 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
         };
         queue.add(sr);
     }
-
-    private final Runnable sliderRunnable = new Runnable() {
-        @Override
-        public void run() {
-            viewPager2.setCurrentItem(viewPager2.getCurrentItem() + 1);
-        }
-    };
 
     private void setData() {
         JsonObject jsonObject = new Gson().fromJson(userData, JsonObject.class);
@@ -1742,7 +1703,7 @@ public class Home extends AppCompatActivity {
         TextView accountExp = findViewById(R.id.accountExp);
         LinearLayout loginBtnLayout = findViewById(R.id.loginBtnLayout);
 
-        if(userData == null) {
+        if (userData == null) {
             String guestName = "Guest";
             userTitle.setText(guestName);
             profileName.setText(guestName);
@@ -1758,7 +1719,7 @@ public class Home extends AppCompatActivity {
             profileEmail.setVisibility(View.GONE);
             loginBtnLayout.setVisibility(View.VISIBLE);
 
-            loginBtnLayout.setOnClickListener(view->{
+            loginBtnLayout.setOnClickListener(view -> {
                 Intent loginSignupActivity = new Intent(Home.this, LoginSignup.class);
                 startActivity(loginSignupActivity);
             });
@@ -1779,7 +1740,7 @@ public class Home extends AppCompatActivity {
             loginBtnLayout.setVisibility(View.GONE);
             profileEmail.setVisibility(View.VISIBLE);
 
-            if(subscriptionType == 0) {
+            if (subscriptionType == 0) {
                 accountType.setText("Free");
                 accountSubscriptionDate.setText("NEVER");
             } else {
@@ -1797,13 +1758,13 @@ public class Home extends AppCompatActivity {
         String subscriptionType = sharedPreferences.getString("subscription_type", null);
 
         String number = String.valueOf(subscriptionType);
-        for(int i = 0; i < number.length(); i++) {
+        for (int i = 0; i < number.length(); i++) {
             int userSubType = Character.digit(number.charAt(i), 10);
-            if(userSubType == 1) {
+            if (userSubType == 1) {
                 removeAds = true;
-            } else if(userSubType == 2) {
+            } else if (userSubType == 2) {
                 playPremium = true;
-            } else if(userSubType == 3) {
+            } else if (userSubType == 3) {
                 downloadPremium = true;
             } else {
                 removeAds = false;
@@ -1826,10 +1787,10 @@ public class Home extends AppCompatActivity {
 
         shuffleContents = jsonObject.get("shuffle_contents").getAsInt();
 
-        showMessage  = jsonObject.get("Show_Message").getAsInt();
+        showMessage = jsonObject.get("Show_Message").getAsInt();
         messageTitle = jsonObject.get("Message_Title").getAsString();
         message = jsonObject.get("Message").getAsString();
-        if(showMessage == 1) {
+        if (showMessage == 1) {
             helperUtils = new HelperUtils(Home.this);
             helperUtils.showMsgDialog(Home.this, messageTitle, message, R.raw.message_in_a_bottle);
         }
@@ -1838,9 +1799,9 @@ public class Home extends AppCompatActivity {
 
         genre_visible_in_home = jsonObject.get("genre_visible_in_home").getAsInt();
 
-        if(genre_visible_in_home == 0) {
+        if (genre_visible_in_home == 0) {
             genreLayout.setVisibility(View.GONE);
-        } else if(genre_visible_in_home == 1) {
+        } else if (genre_visible_in_home == 1) {
             genreLayout.setVisibility(View.VISIBLE);
         } else {
             genreLayout.setVisibility(View.VISIBLE);
@@ -1875,8 +1836,8 @@ public class Home extends AppCompatActivity {
 
     void loadhomecontentlist() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_rand_content_list.php?content_type=Movies", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_rand_content_list.php?content_type=Movies", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<MovieList> movieList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -1885,7 +1846,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -1898,7 +1859,7 @@ public class Home extends AppCompatActivity {
                     }
                 }
 
-                if(shuffleContents == 1) {
+                if (shuffleContents == 1) {
                     Collections.shuffle(movieList);
                 }
 
@@ -1916,15 +1877,15 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
         };
         queue.add(sr);
 
-        StringRequest sr2 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_rand_content_list.php?content_type=WebSeries", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr2 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_rand_content_list.php?content_type=WebSeries", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<WebSeriesList> webSeriesList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -1933,7 +1894,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -1945,7 +1906,7 @@ public class Home extends AppCompatActivity {
                         webSeriesList.add(new WebSeriesList(id, type, name, year, poster));
                     }
                 }
-                if(shuffleContents == 1) {
+                if (shuffleContents == 1) {
                     Collections.shuffle(webSeriesList);
                 }
 
@@ -1966,7 +1927,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -1974,10 +1935,9 @@ public class Home extends AppCompatActivity {
         queue.add(sr2);
 
 
-
         ///////////////////////////////////////////////
-        StringRequest sr3 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_resent_content_list.php?content_type=Movies", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr3 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_resent_content_list.php?content_type=Movies", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<MovieList> recentlyAddedMovieList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -1986,7 +1946,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -1999,7 +1959,7 @@ public class Home extends AppCompatActivity {
                     }
                 }
 
-                if(shuffleContents == 1) {
+                if (shuffleContents == 1) {
                     Collections.shuffle(recentlyAddedMovieList);
                 }
 
@@ -2017,7 +1977,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2025,8 +1985,8 @@ public class Home extends AppCompatActivity {
         queue.add(sr3);
 
 
-        StringRequest sr4 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_resent_content_list.php?content_type=WebSeries", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr4 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_resent_content_list.php?content_type=WebSeries", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<WebSeriesList> recentlyAddedWebSeriesList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -2035,7 +1995,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -2047,7 +2007,7 @@ public class Home extends AppCompatActivity {
                         recentlyAddedWebSeriesList.add(new WebSeriesList(id, type, name, year, poster));
                     }
                 }
-                if(shuffleContents == 1) {
+                if (shuffleContents == 1) {
                     Collections.shuffle(recentlyAddedWebSeriesList);
                 }
 
@@ -2068,15 +2028,15 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
         };
         queue.add(sr4);
 
-        StringRequest sr5 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_live_tv_channel_list.php?filter=featured", response -> {
-            if(!response.equals("No Data Avaliable")) {
+        StringRequest sr5 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_live_tv_channel_list.php?filter=featured", response -> {
+            if (!response.equals("No Data Avaliable")) {
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<LiveTvChannelList> liveTVChannelList = new ArrayList<>();
                 for (JsonElement r : jsonArray) {
@@ -2095,7 +2055,7 @@ public class Home extends AppCompatActivity {
                     }
                 }
 
-                if(shuffleContents == 1) {
+                if (shuffleContents == 1) {
                     Collections.shuffle(liveTVChannelList);
                 }
 
@@ -2113,7 +2073,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2121,12 +2081,9 @@ public class Home extends AppCompatActivity {
         queue.add(sr5);
 
 
-
-
-
         //----------------------------------//
         String tempUserID = null;
-        if(userData != null) {
+        if (userData != null) {
             JsonObject jsonObject = new Gson().fromJson(userData, JsonObject.class);
             tempUserID = String.valueOf(jsonObject.get("ID").getAsInt());
         } else {
@@ -2134,9 +2091,9 @@ public class Home extends AppCompatActivity {
         }
 
         /////=======================////
-        StringRequest sr6 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/beacause_you_watched.php?userID="+tempUserID+"&limit=10&filter=Movies", response -> {
-            if(!response.equals("No Data Avaliable")) {
-                LinearLayout bywMovieLayoutLinearLayout= findViewById(R.id.bywMovieLayout);
+        StringRequest sr6 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/beacause_you_watched.php?userID=" + tempUserID + "&limit=10&filter=Movies", response -> {
+            if (!response.equals("No Data Avaliable")) {
+                LinearLayout bywMovieLayoutLinearLayout = findViewById(R.id.bywMovieLayout);
                 bywMovieLayoutLinearLayout.setVisibility(View.VISIBLE);
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<MovieList> movieList = new ArrayList<>();
@@ -2146,7 +2103,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -2167,7 +2124,7 @@ public class Home extends AppCompatActivity {
                 home_bywm_list_Recycler_View.setAdapter(myadepter);
 
             } else {
-                LinearLayout bywMovieLayoutLinearLayout= findViewById(R.id.bywMovieLayout);
+                LinearLayout bywMovieLayoutLinearLayout = findViewById(R.id.bywMovieLayout);
                 bywMovieLayoutLinearLayout.setVisibility(View.GONE);
                 SwipeRefreshLayout homeSwipeRefreshLayout = findViewById(R.id.Home_Swipe_Refresh_Layout);
                 homeSwipeRefreshLayout.setRefreshing(false);
@@ -2177,16 +2134,16 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
         };
         queue.add(sr6);
 
-        StringRequest sr7 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/beacause_you_watched.php?userID="+tempUserID+"&limit=10&filter=WebSeries", response -> {
-            if(!response.equals("No Data Avaliable")) {
-                LinearLayout bywWebSeriesLayout= findViewById(R.id.bywWebSeriesLayout);
+        StringRequest sr7 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/beacause_you_watched.php?userID=" + tempUserID + "&limit=10&filter=WebSeries", response -> {
+            if (!response.equals("No Data Avaliable")) {
+                LinearLayout bywWebSeriesLayout = findViewById(R.id.bywWebSeriesLayout);
                 bywWebSeriesLayout.setVisibility(View.VISIBLE);
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<WebSeriesList> webSeriesList = new ArrayList<>();
@@ -2196,7 +2153,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -2220,7 +2177,7 @@ public class Home extends AppCompatActivity {
                 homeSwipeRefreshLayout.setRefreshing(false);
 
             } else {
-                LinearLayout bywWebSeriesLayout= findViewById(R.id.bywWebSeriesLayout);
+                LinearLayout bywWebSeriesLayout = findViewById(R.id.bywWebSeriesLayout);
                 bywWebSeriesLayout.setVisibility(View.GONE);
                 SwipeRefreshLayout homeSwipeRefreshLayout = findViewById(R.id.Home_Swipe_Refresh_Layout);
                 homeSwipeRefreshLayout.setRefreshing(false);
@@ -2230,16 +2187,16 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
         };
         queue.add(sr7);
 
-        StringRequest sr8 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_most_watched.php?filter=Movies&limit=10", response -> {
-            if(!response.equals("No Data Avaliable")) {
-                LinearLayout popularMoviesLayout= findViewById(R.id.popularMoviesLayout);
+        StringRequest sr8 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_most_watched.php?filter=Movies&limit=10", response -> {
+            if (!response.equals("No Data Avaliable")) {
+                LinearLayout popularMoviesLayout = findViewById(R.id.popularMoviesLayout);
                 popularMoviesLayout.setVisibility(View.VISIBLE);
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<MovieList> movieList = new ArrayList<>();
@@ -2249,7 +2206,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -2273,7 +2230,7 @@ public class Home extends AppCompatActivity {
                 homeSwipeRefreshLayout.setRefreshing(false);
 
             } else {
-                LinearLayout popularMoviesLayout= findViewById(R.id.popularMoviesLayout);
+                LinearLayout popularMoviesLayout = findViewById(R.id.popularMoviesLayout);
                 popularMoviesLayout.setVisibility(View.GONE);
                 SwipeRefreshLayout homeSwipeRefreshLayout = findViewById(R.id.Home_Swipe_Refresh_Layout);
                 homeSwipeRefreshLayout.setRefreshing(false);
@@ -2283,7 +2240,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2291,10 +2248,9 @@ public class Home extends AppCompatActivity {
         queue.add(sr8);
 
 
-
-        StringRequest sr9 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_most_watched.php?filter=WebSeries&limit=10", response -> {
-            if(!response.equals("No Data Avaliable")) {
-                LinearLayout popularWebSeriesLayout= findViewById(R.id.popularWebSeriesLayout);
+        StringRequest sr9 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_most_watched.php?filter=WebSeries&limit=10", response -> {
+            if (!response.equals("No Data Avaliable")) {
+                LinearLayout popularWebSeriesLayout = findViewById(R.id.popularWebSeriesLayout);
                 popularWebSeriesLayout.setVisibility(View.VISIBLE);
                 JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                 List<WebSeriesList> webSeriesList = new ArrayList<>();
@@ -2304,7 +2260,7 @@ public class Home extends AppCompatActivity {
                     String name = rootObject.get("name").getAsString();
 
                     String year = "";
-                    if(!rootObject.get("release_date").getAsString().equals("")) {
+                    if (!rootObject.get("release_date").getAsString().equals("")) {
                         year = getYearFromDate(rootObject.get("release_date").getAsString());
                     }
 
@@ -2328,7 +2284,7 @@ public class Home extends AppCompatActivity {
                 homeSwipeRefreshLayout.setRefreshing(false);
 
             } else {
-                LinearLayout popularWebSeriesLayout= findViewById(R.id.popularWebSeriesLayout);
+                LinearLayout popularWebSeriesLayout = findViewById(R.id.popularWebSeriesLayout);
                 popularWebSeriesLayout.setVisibility(View.GONE);
                 SwipeRefreshLayout homeSwipeRefreshLayout = findViewById(R.id.Home_Swipe_Refresh_Layout);
                 homeSwipeRefreshLayout.setRefreshing(false);
@@ -2338,7 +2294,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2346,9 +2302,6 @@ public class Home extends AppCompatActivity {
         queue.add(sr9);
 
     }
-
-
-
 
 
     void movieList() {
@@ -2361,10 +2314,10 @@ public class Home extends AppCompatActivity {
         final int[] currentPage = {0};
 
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_movie_list.php?page="+ currentPage[0], new Response.Listener<String>() {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_movie_list.php?page=" + currentPage[0], new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                if(!response.equals("No Data Avaliable")) {
+                if (!response.equals("No Data Avaliable")) {
                     JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                     List<MovieList> movieList = new ArrayList<>();
                     for (JsonElement r : jsonArray) {
@@ -2373,7 +2326,7 @@ public class Home extends AppCompatActivity {
                         String name = rootObject.get("name").getAsString();
 
                         String year = "";
-                        if(!rootObject.get("release_date").getAsString().equals("")) {
+                        if (!rootObject.get("release_date").getAsString().equals("")) {
                             year = getYearFromDate(rootObject.get("release_date").getAsString());
                         }
 
@@ -2386,7 +2339,7 @@ public class Home extends AppCompatActivity {
                         }
                     }
 
-                    if(shuffleContents == 1) {
+                    if (shuffleContents == 1) {
                         Collections.shuffle(movieList);
                     }
 
@@ -2426,7 +2379,7 @@ public class Home extends AppCompatActivity {
                                 currentPage[0]++;
 
                                 RequestQueue queue = Volley.newRequestQueue(Home.this);
-                                StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_movie_list.php?page="+ currentPage[0], response1 -> {
+                                StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_movie_list.php?page=" + currentPage[0], response1 -> {
                                     if (!response1.equals("No Data Avaliable")) {
                                         JsonArray jsonArray1 = new Gson().fromJson(response1, JsonArray.class);
                                         for (JsonElement r : jsonArray1) {
@@ -2435,7 +2388,7 @@ public class Home extends AppCompatActivity {
                                             String name = rootObject.get("name").getAsString();
 
                                             String year = "";
-                                            if(!rootObject.get("release_date").getAsString().equals("")) {
+                                            if (!rootObject.get("release_date").getAsString().equals("")) {
                                                 year = getYearFromDate(rootObject.get("release_date").getAsString());
                                             }
 
@@ -2455,7 +2408,7 @@ public class Home extends AppCompatActivity {
                                 }) {
                                     @Override
                                     public Map<String, String> getHeaders() throws AuthFailureError {
-                                        Map<String,String> params = new HashMap<>();
+                                        Map<String, String> params = new HashMap<>();
                                         params.put("x-api-key", AppConfig.apiKey);
                                         return params;
                                     }
@@ -2483,7 +2436,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2501,10 +2454,10 @@ public class Home extends AppCompatActivity {
         final int[] currentPage = {0};
 
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_web_series_list.php?page="+ currentPage[0], new Response.Listener<String>() {
+        StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_web_series_list.php?page=" + currentPage[0], new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                if(!response.equals("No Data Avaliable")) {
+                if (!response.equals("No Data Avaliable")) {
                     JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                     List<WebSeriesList> webSeriesList = new ArrayList<>();
                     for (JsonElement r : jsonArray) {
@@ -2513,7 +2466,7 @@ public class Home extends AppCompatActivity {
                         String name = rootObject.get("name").getAsString();
 
                         String year = "";
-                        if(!rootObject.get("release_date").getAsString().equals("")) {
+                        if (!rootObject.get("release_date").getAsString().equals("")) {
                             year = getYearFromDate(rootObject.get("release_date").getAsString());
                         }
 
@@ -2526,7 +2479,7 @@ public class Home extends AppCompatActivity {
                         }
                     }
 
-                    if(shuffleContents == 1) {
+                    if (shuffleContents == 1) {
                         Collections.shuffle(webSeriesList);
                     }
 
@@ -2566,8 +2519,8 @@ public class Home extends AppCompatActivity {
                                 currentPage[0]++;
                                 //
                                 RequestQueue queue = Volley.newRequestQueue(Home.this);
-                                StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_web_series_list.php?page="+ currentPage[0], response1 -> {
-                                    if(!response1.equals("No Data Avaliable")) {
+                                StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_web_series_list.php?page=" + currentPage[0], response1 -> {
+                                    if (!response1.equals("No Data Avaliable")) {
                                         JsonArray jsonArray1 = new Gson().fromJson(response1, JsonArray.class);
                                         for (JsonElement r : jsonArray1) {
                                             JsonObject rootObject = r.getAsJsonObject();
@@ -2575,7 +2528,7 @@ public class Home extends AppCompatActivity {
                                             String name = rootObject.get("name").getAsString();
 
                                             String year = "";
-                                            if(!rootObject.get("release_date").getAsString().equals("")) {
+                                            if (!rootObject.get("release_date").getAsString().equals("")) {
                                                 year = getYearFromDate(rootObject.get("release_date").getAsString());
                                             }
 
@@ -2595,7 +2548,7 @@ public class Home extends AppCompatActivity {
                                 }) {
                                     @Override
                                     public Map<String, String> getHeaders() throws AuthFailureError {
-                                        Map<String,String> params = new HashMap<>();
+                                        Map<String, String> params = new HashMap<>();
                                         params.put("x-api-key", AppConfig.apiKey);
                                         return params;
                                     }
@@ -2625,7 +2578,7 @@ public class Home extends AppCompatActivity {
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> params = new HashMap<>();
+                Map<String, String> params = new HashMap<>();
                 params.put("x-api-key", AppConfig.apiKey);
                 return params;
             }
@@ -2649,7 +2602,7 @@ public class Home extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if(!AppConfig.allowVPN) {
+        if (!AppConfig.allowVPN) {
             //check vpn connection
             helperUtils = new HelperUtils(Home.this);
             vpnStatus = helperUtils.isVpnConnectionAvailable();
@@ -2662,7 +2615,7 @@ public class Home extends AppCompatActivity {
         loadResumeContents(resumeContents);
         loadhomecontentlist();
 
-        if(resumeContents.isEmpty()) {
+        if (resumeContents.isEmpty()) {
             resume_Layout.setVisibility(View.GONE);
         } else {
             resume_Layout.setVisibility(View.VISIBLE);

@@ -39,7 +39,7 @@ public class ContinuePlayingListAdepter extends RecyclerView.Adapter<ContinuePla
     @Override
     public ContinuePlayingListAdepter.MyViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
         LayoutInflater mInflater = LayoutInflater.from(context);
-        View view = mInflater.inflate(R.layout.continue_playing_item,parent,false);
+        View view = mInflater.inflate(R.layout.continue_playing_item_new,parent,false);
         return new ContinuePlayingListAdepter.MyViewHolder(view);
     }
 
@@ -50,7 +50,7 @@ public class ContinuePlayingListAdepter extends RecyclerView.Adapter<ContinuePla
         holder.setImage(mData.get(position));
         holder.IsPremium(mData.get(position));
 
-        holder.Movie_Item.setOnClickListener(new View.OnClickListener() {
+        holder.poster.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(mData.get(position).getContent_type().equals("Movie")) {

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:id="@+id/Movie_Item"
+    android:layout_height="140dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:backgroundTint="#00000000"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="15dp"
+    android:focusable="true">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/movie_container"
+        android:layout_width="195dp"
+        android:layout_height="100dp">
+        <ImageView
+            android:id="@+id/Movie_Item_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="fitXY"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@color/Red_Smooth" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="207dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/movie_container"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/deleteItem"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/circle_cross"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:selectableItemBackground"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="195dp"
+        android:layout_gravity="bottom"
+        android:background="@color/black"
+        android:layout_height="40dp">
+
+        <TextView
+            android:id="@+id/Movie_list_Title"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/roboto_bold"
+            android:gravity="start"
+            android:text="Sample Title"
+            android:textAlignment="gravity"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+            android:id="@+id/Movie_list_Year"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:layout_marginStart="3dp"
+            android:gravity="start"
+            android:text="0000"
+            android:visibility="gone"
+            android:textAlignment="gravity"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="normal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/Movie_list_Title" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/contentProgress"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:indeterminate="false"
+            app:indicatorColor="@color/Deep_Yellow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:trackColor="@android:color/transparent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:id="@+id/Premium_Tag"
+        android:layout_width="35dp"
+        android:layout_height="25dp"
+        android:background="@drawable/premium_tag_new"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@+id/Movie_Item_thumbnail">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_gravity="center"
+            android:layout_height="18dp"
+            android:src="@drawable/crown" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
