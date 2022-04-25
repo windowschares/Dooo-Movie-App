@@ -101,11 +101,11 @@ import es.dmoral.toasty.Toasty;
 
 public class MovieDetails extends AppCompatActivity {
     Context context;
-
+    Double Rating_Avg;
     int id;
 
     int userId;
-
+    String user = " in Avg";
     String trailerUrl;
 
     int contentId;
@@ -889,16 +889,15 @@ public class MovieDetails extends AppCompatActivity {
             type = jsonObject.get("type").getAsInt();
             status = jsonObject.get("status").getAsInt();
             description = jsonObject.get("description").getAsString();
-
+            Rating_Avg = jsonObject.get("vote_average").getAsDouble();
             TextView titleTextView = findViewById(R.id.Title_TextView);
             titleTextView.setText(name);
-
             TextView releaseDateTextView = findViewById(R.id.ReleaseDate_TextView);
             releaseDateTextView.setText(releaseDate);
-
             TextView runtimeTextView = findViewById(R.id.Runtime_TextView);
             runtimeTextView.setText(runtime);
-
+            TextView Tmdb = findViewById(R.id.Rating_by_TMDB);
+            Tmdb.setText((String.valueOf(Rating_Avg)+user));
             TextView genreTextView = findViewById(R.id.Genre_TextView);
             genreTextView.setText(genres);
 
