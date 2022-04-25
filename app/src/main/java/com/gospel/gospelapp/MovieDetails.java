@@ -51,6 +51,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.request.target.Target;
 import com.gospel.gospelapp.adepter.CommentListAdepter;
 import com.gospel.gospelapp.adepter.DownloadLinkListAdepter;
 import com.gospel.gospelapp.adepter.PlayMovieItemListAdepter;
@@ -157,7 +159,7 @@ public class MovieDetails extends AppCompatActivity {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(ContextCompat.getColor(this,R.color.Home_TitleBar_BG));
 
-        setContentView(R.layout.activity_movie_details);
+        setContentView(R.layout.new_movie_details);
 
         loadingDialog = new LoadingDialog(this);
 
@@ -903,7 +905,9 @@ public class MovieDetails extends AppCompatActivity {
             ImageView movieDetailsBanner = findViewById(R.id.Movie_Details_Banner);
             Glide.with(MovieDetails.this)
                     .load(banner)
-                    .override(80, 80)
+                    .fitCenter()
+                    .override(Target.SIZE_ORIGINAL)
+                    .format(DecodeFormat.PREFER_ARGB_8888)
                     .placeholder(R.drawable.poster_placeholder)
                     .into(movieDetailsBanner);
 

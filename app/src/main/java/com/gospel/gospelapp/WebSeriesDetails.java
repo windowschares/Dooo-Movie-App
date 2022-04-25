@@ -851,7 +851,7 @@ public class WebSeriesDetails extends AppCompatActivity {
                 }
                     RecyclerView episodeListRecyclerView = findViewById(R.id.episode_list_RecyclerView);
                     myadepter = new EpisodeListAdepter(webSeriesId, context, rootView, AppConfig.url, AppConfig.apiKey, episodeList);
-                    episodeListRecyclerView.setLayoutManager(new GridLayoutManager(context, 1));
+                episodeListRecyclerView.setLayoutManager(new GridLayoutManager(context, 1,RecyclerView.HORIZONTAL, false));
                     episodeListRecyclerView.setAdapter(myadepter);
 
             } else {

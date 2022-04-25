@@ -46,14 +46,13 @@ import java.util.Map;
 
 public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.MyViewHolder> {
 
+    Context context;
     private Context mContext;
     private View rootView;
     private String rootUrl;
     private String apiKey;
     private List<EpisodeList> mData;
     private int contentID;
-
-    Context context;
 
     public EpisodeListAdepter(int contentID, Context mContext, View mView, String rootUrl, String apiKey, List<EpisodeList> mData) {
         this.contentID = contentID;
@@ -71,7 +70,7 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
         context = parent.getContext();
         View view;
         LayoutInflater mInflater = LayoutInflater.from(mContext);
-        view = mInflater.inflate(R.layout.episode_item,parent,false);
+        view = mInflater.inflate(R.layout.episode_itemview, parent, false);
         return new EpisodeListAdepter.MyViewHolder(view);
     }
 
@@ -83,14 +82,15 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
         holder.IsDownloadable(mData.get(position));
         holder.IsPremium(mData.get(position));
 
-        holder.episode_item.setOnClickListener(new View.OnClickListener() {
+        holder.Episode_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(AppConfig.all_series_type == 0) {
-                    if(mData.get(position).getType()== 1) {
+
+                if (AppConfig.all_series_type == 0) {
+                    if (mData.get(position).getType() == 1) {
 
                         if (mData.get(position).isPlay_Premium()) {
-                            if(mData.get(position).getSource().equals("Embed")){
+                            if (mData.get(position).getSource().equals("Embed")) {
                                 Intent intent = new Intent(mContext, EmbedPlayer.class);
                                 intent.putExtra("url", mData.get(position).getUrl());
                                 mContext.startActivity(intent);
@@ -109,8 +109,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                                 intent.putExtra("Content_Type", "WebSeries");
                                 intent.putExtra("Current_List_Position", position);
 
-                                int r_pos = position+1;
-                                if(r_pos < mData.size()) {
+                                int r_pos = position + 1;
+                                if (r_pos < mData.size()) {
                                     intent.putExtra("Next_Ep_Avilable", "Yes");
                                 } else {
                                     intent.putExtra("Next_Ep_Avilable", "No");
@@ -125,7 +125,7 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                         }
 
                     } else {
-                        if(mData.get(position).getSource().equals("Embed")){
+                        if (mData.get(position).getSource().equals("Embed")) {
                             Intent intent = new Intent(mContext, EmbedPlayer.class);
                             intent.putExtra("url", mData.get(position).getUrl());
                             mContext.startActivity(intent);
@@ -144,8 +144,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                             intent.putExtra("Content_Type", "WebSeries");
                             intent.putExtra("Current_List_Position", position);
 
-                            int r_pos = position+1;
-                            if(r_pos < mData.size()) {
+                            int r_pos = position + 1;
+                            if (r_pos < mData.size()) {
                                 intent.putExtra("Next_Ep_Avilable", "Yes");
                             } else {
                                 intent.putExtra("Next_Ep_Avilable", "No");
@@ -155,8 +155,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                             ((WebSeriesDetails) mContext).startActivityForResult(intent, 1);
                         }
                     }
-                } else if(AppConfig.all_series_type == 1) {
-                    if(mData.get(position).getSource().equals("Embed")){
+                } else if (AppConfig.all_series_type == 1) {
+                    if (mData.get(position).getSource().equals("Embed")) {
                         Intent intent = new Intent(mContext, EmbedPlayer.class);
                         intent.putExtra("url", mData.get(position).getUrl());
                         mContext.startActivity(intent);
@@ -175,8 +175,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                         intent.putExtra("Content_Type", "WebSeries");
                         intent.putExtra("Current_List_Position", position);
 
-                        int r_pos = position+1;
-                        if(r_pos < mData.size()) {
+                        int r_pos = position + 1;
+                        if (r_pos < mData.size()) {
                             intent.putExtra("Next_Ep_Avilable", "Yes");
                         } else {
                             intent.putExtra("Next_Ep_Avilable", "No");
@@ -185,9 +185,9 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                         //mContext.startActivity(intent);
                         ((WebSeriesDetails) mContext).startActivityForResult(intent, 1);
                     }
-                } else if(AppConfig.all_series_type == 2) {
+                } else if (AppConfig.all_series_type == 2) {
                     if (mData.get(position).isPlay_Premium()) {
-                        if(mData.get(position).getSource().equals("Embed")){
+                        if (mData.get(position).getSource().equals("Embed")) {
                             Intent intent = new Intent(mContext, EmbedPlayer.class);
                             intent.putExtra("url", mData.get(position).getUrl());
                             mContext.startActivity(intent);
@@ -206,8 +206,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
                             intent.putExtra("Content_Type", "WebSeries");
                             intent.putExtra("Current_List_Position", position);
 
-                            int r_pos = position+1;
-                            if(r_pos < mData.size()) {
+                            int r_pos = position + 1;
+                            if (r_pos < mData.size()) {
                                 intent.putExtra("Next_Ep_Avilable", "Yes");
                             } else {
                                 intent.putExtra("Next_Ep_Avilable", "No");
@@ -224,10 +224,10 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
             }
         });
 
-        holder.Download_btn_image.setOnClickListener(view->{
+        holder.Download_btn_image.setOnClickListener(view -> {
             RequestQueue queue = Volley.newRequestQueue(context);
-            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_episode_download_links.php?episode_id="+mData.get(position).getId(), response -> {
-                if(HelperUtils.checkStoragePermission(context)) {
+            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_episode_download_links.php?episode_id=" + mData.get(position).getId(), response -> {
+                if (HelperUtils.checkStoragePermission(context)) {
                     if (!response.equals("No Data Avaliable")) {
                         if (AppConfig.all_series_type == 0) {
                             if (mData.get(position).getType() == 1) {
@@ -391,7 +391,7 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
             }) {
                 @Override
                 public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String,String> params = new HashMap<>();
+                    Map<String, String> params = new HashMap<>();
                     params.put("x-api-key", AppConfig.apiKey);
                     return params;
                 }
@@ -409,9 +409,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
         ImageView Episode_image;
         TextView Title;
         TextView Description;
-        ImageView Download_btn_image;
+        TextView Download_btn_image;
         LinearLayout Premium_Tag;
-
         CardView episode_item;
 
         public MyViewHolder(@NonNull View itemView) {
@@ -420,9 +419,8 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
             Episode_image = (ImageView) itemView.findViewById(R.id.Episode_image);
             Title = (TextView) itemView.findViewById(R.id.Title);
             Description = (TextView) itemView.findViewById(R.id.Description);
-            Download_btn_image = (ImageView) itemView.findViewById(R.id.Download_btn_image);
+            Download_btn_image = (TextView) itemView.findViewById(R.id.Download_btn_image);
             Premium_Tag = (LinearLayout) itemView.findViewById(R.id.Premium_Tag);
-
             episode_item = itemView.findViewById(R.id.episode_item);
         }
 
@@ -442,7 +440,7 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
         }
 
         void IsDownloadable(EpisodeList type) {
-            if(type.getDownloadable() == 1) {
+            if (type.getDownloadable() == 1) {
                 Download_btn_image.setVisibility(View.VISIBLE);
             } else {
                 Download_btn_image.setVisibility(View.GONE);
@@ -450,16 +448,16 @@ public class EpisodeListAdepter extends RecyclerView.Adapter<EpisodeListAdepter.
         }
 
         void IsPremium(EpisodeList type) {
-            if(AppConfig.all_series_type == 0) {
+            if (AppConfig.all_series_type == 0) {
 
-                if(type.getType() == 1) {
+                if (type.getType() == 1) {
                     Premium_Tag.setVisibility(View.VISIBLE);
                 } else {
                     Premium_Tag.setVisibility(View.GONE);
                 }
-            } else if(AppConfig.all_series_type == 1) {
+            } else if (AppConfig.all_series_type == 1) {
                 Premium_Tag.setVisibility(View.GONE);
-            } else if(AppConfig.all_series_type == 2) {
+            } else if (AppConfig.all_series_type == 2) {
                 Premium_Tag.setVisibility(View.VISIBLE);
             }
         }

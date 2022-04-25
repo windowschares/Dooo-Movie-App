@@ -418,7 +418,7 @@
                                 android:layout_height="3dp"
                                 android:layout_gravity="center"
                                 android:layout_marginStart="12dp"
-                                android:backgroundTint="#F57F17"
+                                android:backgroundTint="#1565C0"
                                 app:cardCornerRadius="10dp"
                                 app:cardElevation="10dp" />
 
@@ -493,7 +493,7 @@
                             android:layout_height="3dp"
                             android:layout_gravity="center"
                             android:layout_marginStart="12dp"
-                            android:backgroundTint="#F57F17"
+                            android:backgroundTint="@color/home_color"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="10dp" />
 
@@ -569,7 +569,7 @@
                             android:layout_height="3dp"
                             android:layout_gravity="center"
                             android:layout_marginStart="12dp"
-                            android:backgroundTint="#F57F17"
+                            android:backgroundTint="@color/home_color"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="10dp" />
 
@@ -645,7 +645,7 @@
                             android:layout_height="3dp"
                             android:layout_gravity="center"
                             android:layout_marginStart="12dp"
-                            android:backgroundTint="#F57F17"
+                            android:backgroundTint="@color/home_color"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="10dp" />
 
@@ -722,7 +722,7 @@
                             android:layout_height="3dp"
                             android:layout_gravity="center"
                             android:layout_marginStart="12dp"
-                            android:backgroundTint="#F57F17"
+                            android:backgroundTint="@color/home_color"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="10dp" />
 

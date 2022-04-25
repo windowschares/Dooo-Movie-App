@@ -9,7 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="Deep_Yellow">#FCF83E</color>
     <color name="Yellow">#FFC801</color>
-
+<color name="home_color">#1565C0 </color>
     <color name="Gray">#DBDCDB</color>
 
     <color name="Blue">#4c5cd5</color>
