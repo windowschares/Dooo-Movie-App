@@ -42,11 +42,7 @@
         android:layout_marginStart="210dp"
         android:layout_height="wrap_content"/>
 </LinearLayout>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="5dp"
-        android:background="@color/Divider"/>
+
     <LinearLayout
         android:id="@+id/fullscreen"
         android:layout_width="match_parent"
@@ -71,11 +67,7 @@
             android:layout_marginStart="170dp"
             android:layout_height="wrap_content"/>
     </LinearLayout>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="5dp"
-        android:background="@color/Divider"/>
+
     <LinearLayout
         android:id="@+id/play_mx"
         android:layout_width="match_parent"
