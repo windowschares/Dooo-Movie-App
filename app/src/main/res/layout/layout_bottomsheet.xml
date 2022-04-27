@@ -36,7 +36,7 @@
         android:layout_marginStart="30dp"
         android:text="Disable Pip"
         />
-    <androidx.appcompat.widget.SwitchCompat
+    <Switch
         android:id="@+id/disable_pip"
         android:layout_width="wrap_content"
         android:layout_marginStart="210dp"
@@ -65,7 +65,7 @@
             android:layout_marginStart="30dp"
             android:text="Enable Fullscreen"
             />
-        <androidx.appcompat.widget.SwitchCompat
+        <Switch
             android:id="@+id/Enable_fullscreen"
             android:layout_width="wrap_content"
             android:layout_marginStart="170dp"

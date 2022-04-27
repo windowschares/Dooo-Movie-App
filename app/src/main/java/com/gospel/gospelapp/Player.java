@@ -306,11 +306,11 @@ public class Player extends AppCompatActivity {
                     Player.this,R.style.BottomSheetDialogTheme);
             View BottomSheetView = LayoutInflater.from(getApplicationContext()).
                     inflate(R.layout.layout_bottomsheet,(LinearLayout)findViewById(R.id.bottom_sheet_container));
-            BottomSheetView.findViewById(R.id.disable_pip).setOnClickListener(view1 ->
-                    {
-                        Toast.makeText(context, "test", Toast.LENGTH_SHORT).show();
-                        bottomSheetDialog.dismiss();
-                    });
+//            BottomSheetView.findViewById(R.id.disable_pip).setOnClickListener(view1 ->
+//                    {
+//                        Toast.makeText(context, "test", Toast.LENGTH_SHORT).show();
+//                        bottomSheetDialog.dismiss();
+//                    });
             bottomSheetDialog.setContentView(BottomSheetView);
             bottomSheetDialog.show();
         });
