@@ -67,7 +67,13 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-
+<ImageView
+    android:id="@+id/open_popup"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/exo_styled_controls_settings"
+    android:layout_marginEnd="65dp"
+    />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <LinearLayout
@@ -425,7 +431,7 @@
                 android:layout_weight="1">
                 <ImageView
                     android:id="@+id/img_settings"
-                    app:srcCompat="@drawable/ic_baseline_settings"
+                    app:srcCompat="@drawable/exo_ic_subtitle_on"
                     android:layout_width="35dp"
                     android:layout_height="35dp"
                     android:padding="5dp"

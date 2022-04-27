@@ -13,4 +13,11 @@
     <style name="SwitchStyle">
         <item name="colorControlActivated">@color/Yellow</item>
     </style>
+ <style name="BottomSheetDialogTheme" parent="Theme.Design.BottomSheetDialog">
+
+ </style>
+    <style name="BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">#00000000</item>
+    </style>
+
 </resources>

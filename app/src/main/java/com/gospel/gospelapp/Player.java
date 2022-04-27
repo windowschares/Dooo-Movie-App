@@ -1,7 +1,5 @@
 package com.gospel.gospelapp;
 
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -22,6 +20,7 @@ import android.os.PowerManager;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -31,6 +30,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,21 +44,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.gospel.gospelapp.db.resume_content.ResumeContent;
-import com.gospel.gospelapp.db.resume_content.ResumeContentDatabase;
-import com.gospel.gospelapp.dialog.TrackSelectionDialog;
-import com.gospel.gospelapp.list.MultiqualityList;
-import com.gospel.gospelapp.list.YTStreamList;
-import com.gospel.gospelapp.utils.HelperUtils;
-import com.gospel.gospelapp.utils.Utils;
-import com.gospel.gospelapp.utils.Yts;
-import com.gospel.gospelapp.utils.stream.Cinematic;
-import com.gospel.gospelapp.utils.stream.Facebook;
-import com.gospel.gospelapp.utils.stream.GoFile;
-import com.gospel.gospelapp.utils.stream.StreamSB;
-import com.gospel.gospelapp.utils.stream.Tubitv;
-import com.gospel.gospelapp.utils.stream.Vimeo;
-import com.gospel.gospelapp.utils.stream.Yandex;
 import com.github.vkay94.dtpv.DoubleTapPlayerView;
 import com.github.vkay94.dtpv.youtube.YouTubeOverlay;
 import com.google.android.exoplayer2.C;
@@ -83,10 +68,26 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.gospel.gospelapp.db.resume_content.ResumeContent;
+import com.gospel.gospelapp.db.resume_content.ResumeContentDatabase;
+import com.gospel.gospelapp.dialog.TrackSelectionDialog;
+import com.gospel.gospelapp.list.MultiqualityList;
+import com.gospel.gospelapp.list.YTStreamList;
+import com.gospel.gospelapp.utils.HelperUtils;
+import com.gospel.gospelapp.utils.Utils;
+import com.gospel.gospelapp.utils.Yts;
+import com.gospel.gospelapp.utils.stream.Cinematic;
+import com.gospel.gospelapp.utils.stream.Facebook;
+import com.gospel.gospelapp.utils.stream.GoFile;
+import com.gospel.gospelapp.utils.stream.StreamSB;
+import com.gospel.gospelapp.utils.stream.Tubitv;
+import com.gospel.gospelapp.utils.stream.Vimeo;
+import com.gospel.gospelapp.utils.stream.Yandex;
 import com.htetznaing.lowcostvideo.LowCostVideo;
 import com.htetznaing.lowcostvideo.Model.XModel;
 
@@ -115,69 +116,103 @@ import java.util.concurrent.atomic.AtomicInteger;
 import abak.tr.com.boxedverticalseekbar.BoxedVertical;
 import es.dmoral.toasty.Toasty;
 
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+
 public class Player extends AppCompatActivity {
+    static ProgressDialog progressDialog;
     Context context = this;
-    private DoubleTapPlayerView playerView;
-    private SimpleExoPlayer simpleExoPlayer;
-
     YouTubeOverlay youtube_overlay;
-
     DataSource.Factory factory;
-
-    private DefaultTrackSelector trackSelector;
-
+    ImageView open_popup;
     int skip_available;
     String intro_start;
     String intro_end;
     Button Skip_Intro_btn;
-
     String ContentType = null;
     int Current_List_Position = 0;
-
     Button Play_Next_btn;
-
     String Next_Ep_Avilable;
-
-    private boolean vpnStatus;
-    private HelperUtils helperUtils;
-
     Boolean contentLoaded = false;
-
     LowCostVideo xGetter;
-    static ProgressDialog progressDialog;
-
     ResumeContentDatabase db;
     int resumeContentID;
-
     long resumePosition = 0;
-
     String userData = null;
     int userId;
-
     String mContentType = "";
-
     int wsType;
-
     int sourceID;
-
     int ct;
-
     MergingMediaSource nMediaSource = null;
-
     PowerManager.WakeLock wakeLock;
-
     int maxBrightness;
-
     String shouldInterceptRequestURL = "";
-
     String source;
-
     int contentID;
     String cpUrl = "";
-
+    Map<String, String> streamSBParams = new HashMap<String, String>();
+    Boolean isBackPressed = false;
+    private DoubleTapPlayerView playerView;
+    private SimpleExoPlayer simpleExoPlayer;
+    private DefaultTrackSelector trackSelector;
+    private boolean vpnStatus;
+    private HelperUtils helperUtils;
     private String streamSBMatcher;
-
     private String bGljZW5zZV9jb2Rl;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (simpleExoPlayer != null) {
+                if (simpleExoPlayer.isPlaying()) {
+                    long apprxDuration = simpleExoPlayer.getDuration() - 5000;
+                    if (simpleExoPlayer.getCurrentPosition() > apprxDuration) {
+                        db.resumeContentDao().delete(resumeContentID);
+                    } else {
+                        db.resumeContentDao().update(simpleExoPlayer.getCurrentPosition(), resumeContentID);
+                    }
+                }
+            }
+
+            //Skip Feature
+            if (skip_available == 1) {
+                if (simpleExoPlayer != null) {
+                    if (intro_start.equals("") || intro_start.equals("0") || intro_start.equals(null) || intro_end.equals("") || intro_end.equals("0") || intro_end.equals(null)) {
+                        Skip_Intro_btn.setVisibility(View.GONE);
+                    } else {
+                        if (Get_mil_From_Time(intro_start) < simpleExoPlayer.getContentPosition() && Get_mil_From_Time(intro_end) > simpleExoPlayer.getContentPosition()) {
+                            Skip_Intro_btn.setVisibility(View.VISIBLE);
+                        } else {
+                            Skip_Intro_btn.setVisibility(View.GONE);
+                        }
+                    }
+                }
+
+            } else {
+                Skip_Intro_btn.setVisibility(View.GONE);
+            }
+
+
+            ////
+            if (!shouldInterceptRequestURL.equals("")) {
+                shouldInterceptRequestPlayerController(shouldInterceptRequestURL);
+                shouldInterceptRequestURL = "";
+            }
+
+            // Repeat every 1 seconds
+            handler.postDelayed(runnable, 1000);
+        }
+    };
+
+    public static int getBrightness(Context context) {
+        ContentResolver cResolver = context.getContentResolver();
+        try {
+            return Settings.System.getInt(cResolver, Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            return 0;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,7 +226,7 @@ public class Player extends AppCompatActivity {
             getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         }
 
-        if(AppConfig.FLAG_SECURE) {
+        if (AppConfig.FLAG_SECURE) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                     WindowManager.LayoutParams.FLAG_SECURE);
         }
@@ -204,7 +239,7 @@ public class Player extends AppCompatActivity {
 
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Player:No Sleep");
-        wakeLock.acquire(300*60*1000L /*300 minutes*/);
+        wakeLock.acquire(300 * 60 * 1000L /*300 minutes*/);
 
         maxBrightness = getMaxBrightness(this, 1000);
 
@@ -221,15 +256,15 @@ public class Player extends AppCompatActivity {
             @Override
             public void onTaskCompleted(ArrayList<XModel> vidURL, boolean multiple_quality) {
                 progressDialog.dismiss();
-                if (multiple_quality){
-                    if (vidURL!=null) {
+                if (multiple_quality) {
+                    if (vidURL != null) {
                         //This video you can choose qualities
                         for (XModel model : vidURL) {
                             //If google drive video you need to set cookie for play or download
                         }
                         multipleQualityDialog(vidURL);
-                    }else done(null);
-                }else {
+                    } else done(null);
+                } else {
                     done(vidURL.get(0));
                 }
             }
@@ -244,15 +279,15 @@ public class Player extends AppCompatActivity {
         Window window = this.getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(ContextCompat.getColor(this,R.color.black));
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.black));
 
         View decorView = getWindow().getDecorView();
-        int uiOptions =  View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LOW_PROFILE;
         decorView.setSystemUiVisibility(uiOptions);
 
         setContentView(R.layout.activity_player);
 
-        if(!AppConfig.allowVPN) {
+        if (!AppConfig.allowVPN) {
             //check vpn connection
             helperUtils = new HelperUtils(Player.this);
             vpnStatus = helperUtils.isVpnConnectionAvailable();
@@ -264,6 +299,21 @@ public class Player extends AppCompatActivity {
 
         playerView = findViewById(R.id.player_view);
 
+        open_popup=findViewById(R.id.open_popup);
+        open_popup.setOnClickListener(view ->
+        {
+            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(
+                    Player.this,R.style.BottomSheetDialogTheme);
+            View BottomSheetView = LayoutInflater.from(getApplicationContext()).
+                    inflate(R.layout.layout_bottomsheet,(LinearLayout)findViewById(R.id.bottom_sheet_container));
+            BottomSheetView.findViewById(R.id.disable_pip).setOnClickListener(view1 ->
+                    {
+                        Toast.makeText(context, "test", Toast.LENGTH_SHORT).show();
+                        bottomSheetDialog.dismiss();
+                    });
+            bottomSheetDialog.setContentView(BottomSheetView);
+            bottomSheetDialog.show();
+        });
         youtube_overlay = findViewById(R.id.ytOverlay);
         youtube_overlay.performListener(new YouTubeOverlay.PerformListener() {
             @Override
@@ -307,12 +357,12 @@ public class Player extends AppCompatActivity {
         cpUrl = url;
 
 
-        if(intent.getExtras().getString("Content_Type") != null) {
+        if (intent.getExtras().getString("Content_Type") != null) {
             mContentType = intent.getExtras().getString("Content_Type");
 
-            if(mContentType.equals("Movie")) {
+            if (mContentType.equals("Movie")) {
                 ct = 1;
-            } else if(mContentType.equals("WebSeries")) {
+            } else if (mContentType.equals("WebSeries")) {
                 ct = 2;
             }
         }
@@ -325,9 +375,9 @@ public class Player extends AppCompatActivity {
         TextView contentSecondName = findViewById(R.id.contentSecondName);
         contentSecondName.setText(name);
 
-        if(mContentType.equals("Movie")) {
+        if (mContentType.equals("Movie")) {
             RequestQueue queue = Volley.newRequestQueue(this);
-            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_movie_details.php?ID="+contentID, response -> {
+            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_movie_details.php?ID=" + contentID, response -> {
                 JsonObject jsonObject = new Gson().fromJson(response, JsonObject.class);
 
                 contentFirstName.setText(jsonObject.get("name").getAsString());
@@ -340,7 +390,7 @@ public class Player extends AppCompatActivity {
                 int type = jsonObject.get("type").getAsInt();
 
                 db = ResumeContentDatabase.getDbInstance(this.getApplicationContext());
-                if(db.resumeContentDao().getResumeContentid(contentID) == 0) {
+                if (db.resumeContentDao().getResumeContentid(contentID) == 0) {
                     db.resumeContentDao().insert(new ResumeContent(0, contentID, source, url, jsonObject.get("poster").getAsString(), jsonObject.get("name").getAsString(), releaseDate, 0, 0, intent.getExtras().getString("Content_Type"), type));
                     resumeContentID = db.resumeContentDao().getResumeContentid(contentID);
                 } else {
@@ -348,10 +398,10 @@ public class Player extends AppCompatActivity {
                     db.resumeContentDao().updateSource(source, url, type, resumeContentID);
                 }
 
-                if(userData != null) {
+                if (userData != null) {
                     HelperUtils.setWatchLog(context, String.valueOf(userId), jsonObject.get("id").getAsInt(), 1, AppConfig.apiKey);
                 } else {
-                    HelperUtils.setWatchLog(context, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), jsonObject.get("id").getAsInt(),1, AppConfig.apiKey);
+                    HelperUtils.setWatchLog(context, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), jsonObject.get("id").getAsInt(), 1, AppConfig.apiKey);
                 }
 
             }, error -> {
@@ -359,21 +409,21 @@ public class Player extends AppCompatActivity {
             }) {
                 @Override
                 public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String,String> params = new HashMap<>();
+                    Map<String, String> params = new HashMap<>();
                     params.put("x-api-key", AppConfig.apiKey);
                     return params;
                 }
             };
             queue.add(sr);
-        } else if(mContentType.equals("WebSeries")) {
+        } else if (mContentType.equals("WebSeries")) {
             RequestQueue queue = Volley.newRequestQueue(this);
-            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_webseries_details.php?ID="+contentID, response -> {
+            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_webseries_details.php?ID=" + contentID, response -> {
                 JsonObject jsonObject = new Gson().fromJson(response, JsonObject.class);
 
                 contentFirstName.setText(jsonObject.get("name").getAsString());
 
                 String releaseDate = "";
-                if(!jsonObject.get("release_date").getAsString().equals("")) {
+                if (!jsonObject.get("release_date").getAsString().equals("")) {
                     releaseDate = jsonObject.get("release_date").getAsString();
                 }
 
@@ -381,17 +431,17 @@ public class Player extends AppCompatActivity {
                 wsType = type;
 
                 db = ResumeContentDatabase.getDbInstance(this.getApplicationContext());
-                if(db.resumeContentDao().getResumeContentid(contentID) == 0) {
+                if (db.resumeContentDao().getResumeContentid(contentID) == 0) {
                     db.resumeContentDao().insert(new ResumeContent(0, contentID, source, url, jsonObject.get("poster").getAsString(), jsonObject.get("name").getAsString(), releaseDate, 0, 0, intent.getExtras().getString("Content_Type"), type));
                     resumeContentID = db.resumeContentDao().getResumeContentid(contentID);
                 } else {
                     resumeContentID = db.resumeContentDao().getResumeContentid(contentID);
                 }
 
-                if(userData != null) {
+                if (userData != null) {
                     HelperUtils.setWatchLog(context, String.valueOf(userId), jsonObject.get("id").getAsInt(), 2, AppConfig.apiKey);
                 } else {
-                    HelperUtils.setWatchLog(context, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), jsonObject.get("id").getAsInt(),2, AppConfig.apiKey);
+                    HelperUtils.setWatchLog(context, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), jsonObject.get("id").getAsInt(), 2, AppConfig.apiKey);
                 }
 
             }, error -> {
@@ -399,7 +449,7 @@ public class Player extends AppCompatActivity {
             }) {
                 @Override
                 public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String,String> params = new HashMap<>();
+                    Map<String, String> params = new HashMap<>();
                     params.put("x-api-key", AppConfig.apiKey);
                     return params;
                 }
@@ -409,8 +459,8 @@ public class Player extends AppCompatActivity {
 
 
         int content_type = intent.getExtras().getInt("content_type");
-        ImageView Live_logo =findViewById(R.id.Live_logo);
-        if(content_type == 3) {
+        ImageView Live_logo = findViewById(R.id.Live_logo);
+        if (content_type == 3) {
             Live_logo.setVisibility(View.VISIBLE);
         } else {
             Live_logo.setVisibility(View.GONE);
@@ -420,35 +470,35 @@ public class Player extends AppCompatActivity {
         intro_start = intent.getExtras().getString("intro_start");
         intro_end = intent.getExtras().getString("intro_end");
 
-        if(intent.getExtras().getString("Content_Type") != null || intent.getExtras().getString("Current_List_Position") != null || intent.getExtras().getString("Next_Ep_Avilable") != null) {
+        if (intent.getExtras().getString("Content_Type") != null || intent.getExtras().getString("Current_List_Position") != null || intent.getExtras().getString("Next_Ep_Avilable") != null) {
             ContentType = intent.getExtras().getString("Content_Type");
             Current_List_Position = intent.getExtras().getInt("Current_List_Position");
             Next_Ep_Avilable = intent.getExtras().getString("Next_Ep_Avilable");
 
         }
 
-        if(resumePosition == 0) {
+        if (resumePosition == 0) {
             if (db.resumeContentDao().getResumeContentid(contentID) != 0) {
                 AlertDialog alertDialog = new AlertDialog.Builder(this).create();
                 alertDialog.setTitle("Resume!");
                 alertDialog.setMessage("Do You Want to Resume From Where You Left?");
 
                 alertDialog.setButton(Dialog.BUTTON_POSITIVE, "Start Over", (dialog, which) -> {
-                    if(mContentType.equals("Movie")) {
+                    if (mContentType.equals("Movie")) {
                         dialog.dismiss();
                         Prepare_Source(source, url);
-                    } else if(mContentType.equals("WebSeries")) {
+                    } else if (mContentType.equals("WebSeries")) {
                         dialog.dismiss();
                         Prepare_Source(source, url);
                         db.resumeContentDao().updateSource(source, url, wsType, resumeContentID);
                     }
                 });
                 alertDialog.setButton(Dialog.BUTTON_NEGATIVE, "Resume", (dialog, which) -> {
-                    if(mContentType.equals("Movie")) {
+                    if (mContentType.equals("Movie")) {
                         dialog.dismiss();
                         resumePosition = db.resumeContentDao().getResumeContentPosition(contentID);
                         Prepare_Source(source, url);
-                    } else if(mContentType.equals("WebSeries")) {
+                    } else if (mContentType.equals("WebSeries")) {
                         resumePosition = db.resumeContentDao().getResumeContentPosition(contentID);
                         Prepare_Source(db.resumeContentDao().getResumeContentSourceType(contentID), db.resumeContentDao().getResumeContentSourceUrl(contentID));
                         contentSecondName.setText(db.resumeContentDao().getResumeContentName(contentID));
@@ -465,10 +515,10 @@ public class Player extends AppCompatActivity {
 
         ImageView img_full_scr = findViewById(R.id.img_full_scr);
         img_full_scr.setOnClickListener(view -> {
-            if(playerView.getResizeMode() == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
+            if (playerView.getResizeMode() == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
                 playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
                 img_full_scr.setImageDrawable(getDrawable(R.drawable.ic_baseline_fullscreen_24));
-            } else if(playerView.getResizeMode() == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
+            } else if (playerView.getResizeMode() == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
                 playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
                 img_full_scr.setImageDrawable(getDrawable(R.drawable.ic_baseline_fullscreen_exit_24));
             } else {
@@ -479,7 +529,7 @@ public class Player extends AppCompatActivity {
 
         ImageView img_settings = findViewById(R.id.img_settings);
         img_settings.setOnClickListener(view -> {
-            if(contentLoaded) {
+            if (contentLoaded) {
                 MappingTrackSelector.MappedTrackInfo mappedTrackInfo;
                 DefaultTrackSelector.Parameters parameters = trackSelector.getParameters();
                 TrackSelectionDialog trackSelectionDialog =
@@ -525,8 +575,8 @@ public class Player extends AppCompatActivity {
         Play_Next_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(ContentType.equals("WebSeries")) {
-                    if(Next_Ep_Avilable.equals("Yes")) {
+                if (ContentType.equals("WebSeries")) {
+                    if (Next_Ep_Avilable.equals("Yes")) {
                         Play_Next_btn.setText("Playing Now");
                         Intent intent = new Intent();
                         intent.putExtra("Current_List_Position", Current_List_Position);
@@ -573,7 +623,7 @@ public class Player extends AppCompatActivity {
         BoxedVertical brightness = findViewById(R.id.brightness);
         ConstraintLayout brightnessLayout = findViewById(R.id.brightnessLayout);
 
-        imgBrightness.setOnClickListener(view->{
+        imgBrightness.setOnClickListener(view -> {
             if (brightnessLayout.getVisibility() == View.VISIBLE) {
                 brightnessLayout.setVisibility(View.GONE);
             } else if (brightnessLayout.getVisibility() == View.GONE) {
@@ -605,7 +655,7 @@ public class Player extends AppCompatActivity {
         BoxedVertical volume = findViewById(R.id.volume);
         ConstraintLayout volumeLayout = findViewById(R.id.volumeLayout);
 
-        imgVolume.setOnClickListener(view->{
+        imgVolume.setOnClickListener(view -> {
             if (volumeLayout.getVisibility() == View.VISIBLE) {
                 volumeLayout.setVisibility(View.GONE);
             } else if (volumeLayout.getVisibility() == View.GONE) {
@@ -614,8 +664,8 @@ public class Player extends AppCompatActivity {
         });
 
         AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-        int maxVolume= am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int volumeLevel= am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int volumeLevel = am.getStreamVolume(AudioManager.STREAM_MUSIC);
 
         volume.setMax(maxVolume);
         volume.setValue(volumeLevel);
@@ -637,12 +687,12 @@ public class Player extends AppCompatActivity {
         });
     }
 
-    int getMaxBrightness(Context context, int defaultValue){
+    int getMaxBrightness(Context context, int defaultValue) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        if(powerManager != null) {
+        if (powerManager != null) {
             Field[] fields = powerManager.getClass().getDeclaredFields();
-            for (Field field: fields) {
-                if(field.getName().equals("BRIGHTNESS_ON")) {
+            for (Field field : fields) {
+                if (field.getName().equals("BRIGHTNESS_ON")) {
                     field.setAccessible(true);
                     try {
                         return (int) field.get(powerManager);
@@ -655,82 +705,27 @@ public class Player extends AppCompatActivity {
         return defaultValue;
     }
 
-    public void setBrightness(Context context, int brightness){
+    public void setBrightness(Context context, int brightness) {
         //ContentResolver cResolver = context.getContentResolver();
         //Settings.System.putInt(cResolver,  Settings.System.SCREEN_BRIGHTNESS,brightness);
 
         WindowManager.LayoutParams layout = getWindow().getAttributes();
-        layout.screenBrightness = (float) brightness/maxBrightness;
+        layout.screenBrightness = (float) brightness / maxBrightness;
         getWindow().setAttributes(layout);
 
     }
 
-    public static int getBrightness(Context context) {
-        ContentResolver cResolver = context.getContentResolver();
-        try {
-            return Settings.System.getInt(cResolver,  Settings.System.SCREEN_BRIGHTNESS);
-        } catch (Settings.SettingNotFoundException e) {
-            return 0;
-        }
-    }
-
-
     public void FullScreencall() {
-        if(Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
             View v = this.getWindow().getDecorView();
             v.setSystemUiVisibility(View.GONE);
-        } else if(Build.VERSION.SDK_INT >= 19) {
+        } else if (Build.VERSION.SDK_INT >= 19) {
             //for new api versions.
             View decorView = getWindow().getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             decorView.setSystemUiVisibility(uiOptions);
         }
     }
-
-    private Handler handler = new Handler();
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if(simpleExoPlayer != null) {
-                if (simpleExoPlayer.isPlaying()) {
-                    long apprxDuration = simpleExoPlayer.getDuration() - 5000;
-                    if (simpleExoPlayer.getCurrentPosition() > apprxDuration) {
-                        db.resumeContentDao().delete(resumeContentID);
-                    } else {
-                        db.resumeContentDao().update(simpleExoPlayer.getCurrentPosition(), resumeContentID);
-                    }
-                }
-            }
-
-            //Skip Feature
-            if(skip_available == 1) {
-                if(simpleExoPlayer != null) {
-                    if(intro_start.equals("") || intro_start.equals("0") || intro_start.equals(null) || intro_end.equals("") || intro_end.equals("0") || intro_end.equals(null)) {
-                      Skip_Intro_btn.setVisibility(View.GONE);
-                    } else {
-                      if(Get_mil_From_Time(intro_start) < simpleExoPlayer.getContentPosition() && Get_mil_From_Time(intro_end) > simpleExoPlayer.getContentPosition()) {
-                        Skip_Intro_btn.setVisibility(View.VISIBLE);
-                      } else {
-                        Skip_Intro_btn.setVisibility(View.GONE);
-                      }
-                    }
-                }
-
-            } else {
-                Skip_Intro_btn.setVisibility(View.GONE);
-            }
-
-
-            ////
-            if(!shouldInterceptRequestURL.equals("")) {
-                shouldInterceptRequestPlayerController(shouldInterceptRequestURL);
-                shouldInterceptRequestURL = "";
-            }
-
-            // Repeat every 1 seconds
-            handler.postDelayed(runnable, 1000);
-        }
-    };
 
     long Get_mil_From_Time(String Time) {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:SS");
@@ -753,22 +748,21 @@ public class Player extends AppCompatActivity {
         long m_min = 0;
         long m_sec = 0;
         if (!Hour.equals("00")) {
-            m_hour = Integer.parseInt(Hour)*3600000;
+            m_hour = Integer.parseInt(Hour) * 3600000;
         }
 
         if (!Min.equals("00")) {
-            m_min = Integer.parseInt(Min)*60000;
+            m_min = Integer.parseInt(Min) * 60000;
         }
 
         if (!Sec.equals("00")) {
-            m_sec = Integer.parseInt(Sec)*1000;
+            m_sec = Integer.parseInt(Sec) * 1000;
         }
 
         Long F_mil = m_hour + m_min + m_sec;
 
         return F_mil;
     }
-
 
     void Prepare_Source(String source, String url) {
         String userAgent = Util.getUserAgent(this, "KAIOS");
@@ -846,7 +840,7 @@ public class Player extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }, 10);*/
-            HlsMediaSource mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url+"/api/fetch/youtube/get_ytlive.php?url="+url)));
+            HlsMediaSource mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/youtube/get_ytlive.php?url=" + url)));
             initializePlayer(mediaSource);
 
         } else if (source.equals("Dailymotion")) {
@@ -984,40 +978,37 @@ public class Player extends AppCompatActivity {
             finish();*/
 
         } else if (source.equals("GoogleDrive")) {
-            List<MultiqualityList> multiqualityList = new ArrayList<>();
-            try {
-                multiqualityList.add(new MultiqualityList("Low Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=ld"));
-                multiqualityList.add(new MultiqualityList("Standerd Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=sd"));
-                multiqualityList.add(new MultiqualityList("High Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=hd"));
-                multiqualityList.add(new MultiqualityList("Full HD", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=fhd"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            CharSequence[] name = new CharSequence[multiqualityList.size()];
-            for (int i = 0; i < multiqualityList.size(); i++) {
-                name[i] = multiqualityList.get(i).getQuality();
-            }
-            AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                    .setTitle("Quality!")
-                    .setItems(name, (dialog, which) -> {
-                        MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(multiqualityList.get(which).getUrl())));
-                        initializePlayer(mediaSource);
-                    })
-                    .setPositiveButton("Close", (dialog, which) -> {
-                        isBackPressed = true;
-                        releasePlayer();
-                        handler.removeCallbacks(runnable);
-                        finish();
-                    });
-            progressDialog.hide();
-            builder.show();
-            //MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/gdfetch.php?url=" + url)));
-            //initializePlayer(mediaSource);
-            /*String[] parts = url.split("/");
-            String id = parts[5];
-            String finalurl = "https://drive.google.com/uc?export=download&id="+id;
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(finalurl)));
-            initializePlayer(mediaSource);*/
+//            List<MultiqualityList> multiqualityList = new ArrayList<>();
+//            try {
+//                multiqualityList.add(new MultiqualityList("Low Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=ld"));
+//                multiqualityList.add(new MultiqualityList("Standerd Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=sd"));
+//                multiqualityList.add(new MultiqualityList("High Quality", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=hd"));
+//                multiqualityList.add(new MultiqualityList("Full HD", AppConfig.url + "/api/fetch/gd/gdfetch.php?url="+url+"&type=fhd"));
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//            CharSequence[] name = new CharSequence[multiqualityList.size()];
+//            for (int i = 0; i < multiqualityList.size(); i++) {
+//                name[i] = multiqualityList.get(i).getQuality();
+//            }
+//            AlertDialog.Builder builder = new AlertDialog.Builder(context)
+//                    .setTitle("Quality!")
+//                    .setItems(name, (dialog, which) -> {
+//                        MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(multiqualityList.get(which).getUrl())));
+//                        initializePlayer(mediaSource);
+
+//                    })
+//                    .setPositiveButton("Close", (dialog, which) -> {
+//                        isBackPressed = true;
+//                        releasePlayer();
+//                        handler.removeCallbacks(runnable);
+//                        finish();
+//                    });
+//            progressDialog.hide();
+//            builder.show();
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/gd/gdfetch.php?url=" + url + "&type=fhd" + url)));
+            initializePlayer(mediaSource);
+
         } else if (source.equals("Onedrive")) {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/onedrive/odfetch.php?url=" + url)));
             initializePlayer(mediaSource);
@@ -1026,7 +1017,7 @@ public class Player extends AppCompatActivity {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(finalEncodedUrl)));
             initializePlayer(mediaSource);*/
         } else if (source.equals("OnedriveBusiness")) {
-            String OnedriveBusinessURL = url.split("e=")[0]+"download=1";
+            String OnedriveBusinessURL = url.split("e=")[0] + "download=1";
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(OnedriveBusinessURL)));
             initializePlayer(mediaSource);
         } else if (source.equals("Yandex")) {
@@ -1203,13 +1194,13 @@ public class Player extends AppCompatActivity {
         } else if (source.equals("DoodStream")) {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/doodstream/stream.php?url=" + url)));
             initializePlayer(mediaSource);
-        } else if(source.equals("StreamSB")) {
+        } else if (source.equals("StreamSB")) {
             progressDialog.show();
 
             StreamSB.getStreamSBString(this, bGljZW5zZV9jb2Rl, new StreamSB.StreamSBCallback() {
                 @Override
                 public void onSuccess(String result) {
-                    if(!result.equals("false")) {
+                    if (!result.equals("false")) {
                         streamSBMatcher = result;
 
                         android.webkit.WebView webView = new WebView(context);
@@ -1239,7 +1230,7 @@ public class Player extends AppCompatActivity {
                 }
             });
 
-        } else if(source.equals("Voesx")) {
+        } else if (source.equals("Voesx")) {
             progressDialog.show();
 
             android.webkit.WebView webView = new WebView(context);
@@ -1251,7 +1242,7 @@ public class Player extends AppCompatActivity {
             webView.getSettings().setDomStorageEnabled(true);
             webView.loadUrl(url);
 
-        } else if(source.equals("Videobin")) {
+        } else if (source.equals("Videobin")) {
             progressDialog.show();
 
             android.webkit.WebView webView = new WebView(context);
@@ -1263,7 +1254,7 @@ public class Player extends AppCompatActivity {
             webView.getSettings().setDomStorageEnabled(true);
             webView.loadUrl(url);
 
-        } else if(source.equals("Streamzz")) {
+        } else if (source.equals("Streamzz")) {
             progressDialog.show();
 
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -1310,10 +1301,10 @@ public class Player extends AppCompatActivity {
 
             progressDialog.dismiss();
 
-        } else if(source.equals("Uqload")) {
-            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse("/api/fetch/uqload/get_uqload.php?url="+url)));
+        } else if (source.equals("Uqload")) {
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse("/api/fetch/uqload/get_uqload.php?url=" + url)));
             initializePlayer(mediaSource);
-        } else if(source.equals("MP4Upload") || source.endsWith("GooglePhotos") || source.equals("MediaFire") || source.equals("OKru") ||
+        } else if (source.equals("MP4Upload") || source.endsWith("GooglePhotos") || source.equals("MediaFire") || source.equals("OKru") ||
                 source.endsWith("VK") || source.endsWith("Twitter") || source.equals("Solidfiles") || source.equals("Vidoza") ||
                 source.equals("UpToStream") || source.equals("Fansubs") || source.equals("Sendvid") || source.equals("Fembed") || source.equals("Filerio") ||
                 source.equals("Megaup") || source.equals("GoUnlimited") || source.endsWith("Cocoscope") || source.equals("Vidbm") || source.equals("Pstream") ||
@@ -1325,41 +1316,6 @@ public class Player extends AppCompatActivity {
         } else {
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(url)));
             initializePlayer(mediaSource);
-        }
-    }
-
-
-    Map<String, String>  streamSBParams = new HashMap<String, String>();
-
-    public class MyWebViewClient extends WebViewClient {
-        @Override
-        public WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, WebResourceRequest request) {
-
-            if(source.equals("StreamSB")) {
-                if(request.getUrl().toString().toLowerCase().contains(streamSBMatcher)) {
-                    streamSBParams = request.getRequestHeaders();
-                    shouldInterceptRequestURL = request.getUrl().toString();
-
-                }
-            } else if (source.equals("Voesx")) {
-                if(request.getUrl().toString().toLowerCase().contains(".m3u8")) {
-                    shouldInterceptRequestURL = request.getUrl().toString();
-                }
-            } else if(source.equals("Videobin")) {
-                if(request.getUrl().toString().toLowerCase().contains(".mp4")) {
-                    shouldInterceptRequestURL = request.getUrl().toString();
-                }
-            } else if(source.equals("Dropbox")) {
-                if(request.getUrl().toString().toLowerCase().contains(".m3u8")) {
-                    shouldInterceptRequestURL = request.getUrl().toString();
-                }
-            } else if(source.equals("TwitchLive")) {
-                if(request.getUrl().toString().toLowerCase().contains(".m3u8")) {
-                    shouldInterceptRequestURL = request.getUrl().toString();
-                }
-            }
-
-            return super.shouldInterceptRequest(view, request);
         }
     }
 
@@ -1378,15 +1334,15 @@ public class Player extends AppCompatActivity {
                 httpDataSourceFactory
         );
 
-        if(source.equals("StreamSB")) {
+        if (source.equals("StreamSB")) {
             shouldInterceptRequestStreamSBPlayer(data, dataSourceFactory);
         } else if (source.equals("Voesx")) {
             shouldInterceptRequestVoesxPlayer(data, dataSourceFactory);
-        } else if(source.equals("Videobin")) {
+        } else if (source.equals("Videobin")) {
             shouldInterceptRequestVideobinPlayer(data, dataSourceFactory);
-        } else if(source.equals("Dropbox")) {
+        } else if (source.equals("Dropbox")) {
             shouldInterceptRequestDropboxPlayer(data, dataSourceFactory);
-        } else if(source.equals("TwitchLive")) {
+        } else if (source.equals("TwitchLive")) {
             shouldInterceptRequestTwitchLivePlayer(data, dataSourceFactory);
         }
 
@@ -1394,7 +1350,7 @@ public class Player extends AppCompatActivity {
 
     void shouldInterceptRequestStreamSBPlayer(String data, DefaultDataSourceFactory dataSourceFactory) {
         progressDialog.dismiss();
-        HlsMediaSource mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url+"/api/fetch/streamSB/getmainstream.php?url="+Utils.toBase64(data))));
+        HlsMediaSource mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(AppConfig.url + "/api/fetch/streamSB/getmainstream.php?url=" + Utils.toBase64(data))));
         initializePlayer(mediaSource);
         /*RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest sr = new StringRequest(com.android.volley.Request.Method.GET, data, response -> {
@@ -1476,7 +1432,7 @@ public class Player extends AppCompatActivity {
                 .setItems(name, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Yts.getStreamLinks(context, (String) token[which], (String) vid[which], new Yts.VolleyCallback2(){
+                        Yts.getStreamLinks(context, (String) token[which], (String) vid[which], new Yts.VolleyCallback2() {
 
                             @Override
                             public void onSuccess(String result) {
@@ -1517,7 +1473,7 @@ public class Player extends AppCompatActivity {
 
     void dailymotion(String dMotionId) {
         RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.GET, "https://www.dailymotion.com/player/metadata/video/"+dMotionId, response -> {
+        StringRequest sr = new StringRequest(Request.Method.GET, "https://www.dailymotion.com/player/metadata/video/" + dMotionId, response -> {
             JsonObject jsonObject = new Gson().fromJson(response, JsonObject.class);
             JsonObject qualities = jsonObject.get("qualities").getAsJsonObject();
             JsonArray auto = qualities.get("auto").getAsJsonArray();
@@ -1548,12 +1504,12 @@ public class Player extends AppCompatActivity {
         queue.add(sr);
     }
 
-    private void done(XModel xModel){
+    private void done(XModel xModel) {
         String url = null;
-        if (xModel!=null) {
+        if (xModel != null) {
             url = xModel.getUrl();
         }
-        if (url!=null) {
+        if (url != null) {
 
             String userAgent = Util.getUserAgent(this, "KAIOS");
             // Default parameters, except allowCrossProtocolRedirects is true
@@ -1564,7 +1520,7 @@ public class Player extends AppCompatActivity {
                     DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
                     true /* allowCrossProtocolRedirects */
             );
-            if (xModel.getCookie()!=null) {
+            if (xModel.getCookie() != null) {
                 httpDataSourceFactory.getDefaultRequestProperties().set("Cookie", xModel.getCookie());
             }
             DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(
@@ -1575,10 +1531,11 @@ public class Player extends AppCompatActivity {
             Log.d("test", xModel.getUrl());
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(xModel.getUrl())));
             initializePlayer(mediaSource);
-        }else {
+        } else {
             Log.d("test", "inValid URL");
         }
     }
+
     private void multipleQualityDialog(ArrayList<XModel> model) {
         CharSequence[] name = new CharSequence[model.size()];
 
@@ -1614,20 +1571,20 @@ public class Player extends AppCompatActivity {
                 .setSeekBackIncrementMs(10000)
                 .build();
 
-            youtube_overlay.player(simpleExoPlayer);
+        youtube_overlay.player(simpleExoPlayer);
 
-            playerView.setPlayer(simpleExoPlayer);
-            playerView.setKeepScreenOn(true);
+        playerView.setPlayer(simpleExoPlayer);
+        playerView.setKeepScreenOn(true);
 
-            //Player Speed
+        //Player Speed
 
 
         ImageView playerSpeed = findViewById(R.id.playerSpeed);
-        String grpname[] = { "0.5x", "1.0x", "1.5x", "2.0x" };
-        float playerSpeedgroup[] = { 0.5f, 1f, 1.5f, 2f };
+        String grpname[] = {"0.5x", "1.0x", "1.5x", "2.0x"};
+        float playerSpeedgroup[] = {0.5f, 1f, 1.5f, 2f};
         final int[] selectedGorup = {1};
         final int[] tempSelectedGorup = {1};
-        playerSpeed.setOnClickListener(view->{
+        playerSpeed.setOnClickListener(view -> {
             AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
             //alt_bld.setIcon(R.drawable.ic_baseline_watch);
             alt_bld.setTitle("Select Player Speed");
@@ -1668,195 +1625,194 @@ public class Player extends AppCompatActivity {
         );
 
 
-
         AtomicInteger subContentID = new AtomicInteger();
-        if(resumePosition != 0 && simpleExoPlayer != null) {
-           if(ct == 1) {
-               RequestQueue queue0 = Volley.newRequestQueue(context);
-               StringRequest sr0 = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_content_id_from_url.php?main_content_id="+contentID+"&ct="+ct+"&content_url="+cpUrl, response0 -> {
-                   JsonObject jsonObject = new Gson().fromJson(response0, JsonObject.class);
-                   int subCiD = jsonObject.get("id").getAsInt();
-                   subContentID.set(subCiD);
+        if (resumePosition != 0 && simpleExoPlayer != null) {
+            if (ct == 1) {
+                RequestQueue queue0 = Volley.newRequestQueue(context);
+                StringRequest sr0 = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_content_id_from_url.php?main_content_id=" + contentID + "&ct=" + ct + "&content_url=" + cpUrl, response0 -> {
+                    JsonObject jsonObject = new Gson().fromJson(response0, JsonObject.class);
+                    int subCiD = jsonObject.get("id").getAsInt();
+                    subContentID.set(subCiD);
 
-                   RequestQueue queue = Volley.newRequestQueue(context);
-                   StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_subtitle.php?content_id="+subContentID.get()+"&ct="+ct, response -> {
+                    RequestQueue queue = Volley.newRequestQueue(context);
+                    StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_subtitle.php?content_id=" + subContentID.get() + "&ct=" + ct, response -> {
 
-                       if(!response.equals("No Data Avaliable")) {
-                           JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
-                           int count = 0;
-                           for (JsonElement rootElement : jsonArray) {
-                               count++;
+                        if (!response.equals("No Data Avaliable")) {
+                            JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
+                            int count = 0;
+                            for (JsonElement rootElement : jsonArray) {
+                                count++;
 
-                               JsonObject rootObject = rootElement.getAsJsonObject();
+                                JsonObject rootObject = rootElement.getAsJsonObject();
 
-                               MediaItem.Subtitle subtitle = null;
-                               if(rootObject.get("mime_type").getAsString().equals("WebVTT")) {
-                                   subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
-                               } else if(rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
-                                   subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
-                               } else if(rootObject.get("mime_type").getAsString().equals("SubRip")) {
-                                   subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
-                               } else if(rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
-                                   subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
-                               } else {
-                                   subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
-                               }
+                                MediaItem.Subtitle subtitle = null;
+                                if (rootObject.get("mime_type").getAsString().equals("WebVTT")) {
+                                    subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
+                                } else if (rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
+                                    subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
+                                } else if (rootObject.get("mime_type").getAsString().equals("SubRip")) {
+                                    subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                                } else if (rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
+                                    subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
+                                } else {
+                                    subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                                }
 
-                               MediaSource textMediaSource = new SingleSampleMediaSource.Factory(factory).createMediaSource(subtitle, C.TIME_UNSET);
+                                MediaSource textMediaSource = new SingleSampleMediaSource.Factory(factory).createMediaSource(subtitle, C.TIME_UNSET);
 
-                               if(nMediaSource == null) {
-                                   nMediaSource = new MergingMediaSource(mediaSource, textMediaSource);
-                               } else {
-                                   nMediaSource = new MergingMediaSource(nMediaSource, textMediaSource);
-                               }
+                                if (nMediaSource == null) {
+                                    nMediaSource = new MergingMediaSource(mediaSource, textMediaSource);
+                                } else {
+                                    nMediaSource = new MergingMediaSource(nMediaSource, textMediaSource);
+                                }
 
-                               if(count == jsonArray.size()) {
-                                   if(nMediaSource != null) {
-                                       simpleExoPlayer.setMediaSource(nMediaSource);
-                                       simpleExoPlayer.prepare();
-                                       simpleExoPlayer.setPlayWhenReady(true);
+                                if (count == jsonArray.size()) {
+                                    if (nMediaSource != null) {
+                                        simpleExoPlayer.setMediaSource(nMediaSource);
+                                        simpleExoPlayer.prepare();
+                                        simpleExoPlayer.setPlayWhenReady(true);
 
-                                       if(resumePosition != 0 && simpleExoPlayer != null) {
-                                           simpleExoPlayer.seekTo(resumePosition);
-                                       }
-                                   } else {
-                                       simpleExoPlayer.setMediaSource(mediaSource);
-                                       simpleExoPlayer.prepare();
-                                       simpleExoPlayer.setPlayWhenReady(true);
+                                        if (resumePosition != 0 && simpleExoPlayer != null) {
+                                            simpleExoPlayer.seekTo(resumePosition);
+                                        }
+                                    } else {
+                                        simpleExoPlayer.setMediaSource(mediaSource);
+                                        simpleExoPlayer.prepare();
+                                        simpleExoPlayer.setPlayWhenReady(true);
 
-                                       if(resumePosition != 0 && simpleExoPlayer != null) {
-                                           simpleExoPlayer.seekTo(resumePosition);
-                                       }
-                                   }
-                               }
-                           }
-                       } else {
-                           simpleExoPlayer.setMediaSource(mediaSource);
-                           simpleExoPlayer.prepare();
-                           simpleExoPlayer.setPlayWhenReady(true);
+                                        if (resumePosition != 0 && simpleExoPlayer != null) {
+                                            simpleExoPlayer.seekTo(resumePosition);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            simpleExoPlayer.setMediaSource(mediaSource);
+                            simpleExoPlayer.prepare();
+                            simpleExoPlayer.setPlayWhenReady(true);
 
-                           if(resumePosition != 0 && simpleExoPlayer != null) {
-                               simpleExoPlayer.seekTo(resumePosition);
-                           }
-                       }
-                   }, error -> {
-                       simpleExoPlayer.setMediaSource(mediaSource);
-                       simpleExoPlayer.prepare();
-                       simpleExoPlayer.setPlayWhenReady(true);
+                            if (resumePosition != 0 && simpleExoPlayer != null) {
+                                simpleExoPlayer.seekTo(resumePosition);
+                            }
+                        }
+                    }, error -> {
+                        simpleExoPlayer.setMediaSource(mediaSource);
+                        simpleExoPlayer.prepare();
+                        simpleExoPlayer.setPlayWhenReady(true);
 
-                       if(resumePosition != 0 && simpleExoPlayer != null) {
-                           simpleExoPlayer.seekTo(resumePosition);
-                       }
-                   }) {
-                       @Override
-                       public Map<String, String> getHeaders() throws AuthFailureError {
-                           Map<String,String> params = new HashMap<>();
-                           params.put("x-api-key", AppConfig.apiKey);
-                           return params;
-                       }
-                   };
-                   queue.add(sr);
-               }, error -> {
-                   Log.d("test", String.valueOf(error));
-               }) {
-                   @Override
-                   public Map<String, String> getHeaders() throws AuthFailureError {
-                       Map<String,String> params = new HashMap<>();
-                       params.put("x-api-key", AppConfig.apiKey);
-                       return params;
-                   }
-               };
-               queue0.add(sr0);
-           } else {
-               subContentID.set(contentID);
+                        if (resumePosition != 0 && simpleExoPlayer != null) {
+                            simpleExoPlayer.seekTo(resumePosition);
+                        }
+                    }) {
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
+                            Map<String, String> params = new HashMap<>();
+                            params.put("x-api-key", AppConfig.apiKey);
+                            return params;
+                        }
+                    };
+                    queue.add(sr);
+                }, error -> {
+                    Log.d("test", String.valueOf(error));
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("x-api-key", AppConfig.apiKey);
+                        return params;
+                    }
+                };
+                queue0.add(sr0);
+            } else {
+                subContentID.set(contentID);
 
-               RequestQueue queue = Volley.newRequestQueue(context);
-               StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_subtitle.php?content_id="+subContentID.get()+"&ct="+ct, response -> {
+                RequestQueue queue = Volley.newRequestQueue(context);
+                StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_subtitle.php?content_id=" + subContentID.get() + "&ct=" + ct, response -> {
 
-                   if(!response.equals("No Data Avaliable")) {
-                       JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
-                       int count = 0;
-                       for (JsonElement rootElement : jsonArray) {
-                           count++;
+                    if (!response.equals("No Data Avaliable")) {
+                        JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
+                        int count = 0;
+                        for (JsonElement rootElement : jsonArray) {
+                            count++;
 
-                           JsonObject rootObject = rootElement.getAsJsonObject();
+                            JsonObject rootObject = rootElement.getAsJsonObject();
 
-                           MediaItem.Subtitle subtitle = null;
-                           if(rootObject.get("mime_type").getAsString().equals("WebVTT")) {
-                               subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
-                           } else if(rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
-                               subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
-                           } else if(rootObject.get("mime_type").getAsString().equals("SubRip")) {
-                               subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
-                           } else if(rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
-                               subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
-                           } else {
-                               subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
-                           }
+                            MediaItem.Subtitle subtitle = null;
+                            if (rootObject.get("mime_type").getAsString().equals("WebVTT")) {
+                                subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
+                            } else if (rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
+                                subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
+                            } else if (rootObject.get("mime_type").getAsString().equals("SubRip")) {
+                                subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                            } else if (rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
+                                subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
+                            } else {
+                                subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                            }
 
-                           MediaSource textMediaSource = new SingleSampleMediaSource.Factory(factory).createMediaSource(subtitle, C.TIME_UNSET);
+                            MediaSource textMediaSource = new SingleSampleMediaSource.Factory(factory).createMediaSource(subtitle, C.TIME_UNSET);
 
-                           if(nMediaSource == null) {
-                               nMediaSource = new MergingMediaSource(mediaSource, textMediaSource);
-                           } else {
-                               nMediaSource = new MergingMediaSource(nMediaSource, textMediaSource);
-                           }
+                            if (nMediaSource == null) {
+                                nMediaSource = new MergingMediaSource(mediaSource, textMediaSource);
+                            } else {
+                                nMediaSource = new MergingMediaSource(nMediaSource, textMediaSource);
+                            }
 
-                           if(count == jsonArray.size()) {
-                               if(nMediaSource != null) {
-                                   simpleExoPlayer.setMediaSource(nMediaSource);
-                                   simpleExoPlayer.prepare();
-                                   simpleExoPlayer.setPlayWhenReady(true);
+                            if (count == jsonArray.size()) {
+                                if (nMediaSource != null) {
+                                    simpleExoPlayer.setMediaSource(nMediaSource);
+                                    simpleExoPlayer.prepare();
+                                    simpleExoPlayer.setPlayWhenReady(true);
 
-                                   if(resumePosition != 0 && simpleExoPlayer != null) {
-                                       simpleExoPlayer.seekTo(resumePosition);
-                                   }
-                               } else {
-                                   simpleExoPlayer.setMediaSource(mediaSource);
-                                   simpleExoPlayer.prepare();
-                                   simpleExoPlayer.setPlayWhenReady(true);
+                                    if (resumePosition != 0 && simpleExoPlayer != null) {
+                                        simpleExoPlayer.seekTo(resumePosition);
+                                    }
+                                } else {
+                                    simpleExoPlayer.setMediaSource(mediaSource);
+                                    simpleExoPlayer.prepare();
+                                    simpleExoPlayer.setPlayWhenReady(true);
 
-                                   if(resumePosition != 0 && simpleExoPlayer != null) {
-                                       simpleExoPlayer.seekTo(resumePosition);
-                                   }
-                               }
-                           }
-                       }
-                   } else {
-                       simpleExoPlayer.setMediaSource(mediaSource);
-                       simpleExoPlayer.prepare();
-                       simpleExoPlayer.setPlayWhenReady(true);
+                                    if (resumePosition != 0 && simpleExoPlayer != null) {
+                                        simpleExoPlayer.seekTo(resumePosition);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        simpleExoPlayer.setMediaSource(mediaSource);
+                        simpleExoPlayer.prepare();
+                        simpleExoPlayer.setPlayWhenReady(true);
 
-                       if(resumePosition != 0 && simpleExoPlayer != null) {
-                           simpleExoPlayer.seekTo(resumePosition);
-                       }
-                   }
-               }, error -> {
-                   simpleExoPlayer.setMediaSource(mediaSource);
-                   simpleExoPlayer.prepare();
-                   simpleExoPlayer.setPlayWhenReady(true);
+                        if (resumePosition != 0 && simpleExoPlayer != null) {
+                            simpleExoPlayer.seekTo(resumePosition);
+                        }
+                    }
+                }, error -> {
+                    simpleExoPlayer.setMediaSource(mediaSource);
+                    simpleExoPlayer.prepare();
+                    simpleExoPlayer.setPlayWhenReady(true);
 
-                   if(resumePosition != 0 && simpleExoPlayer != null) {
-                       simpleExoPlayer.seekTo(resumePosition);
-                   }
-               }) {
-                   @Override
-                   public Map<String, String> getHeaders() throws AuthFailureError {
-                       Map<String,String> params = new HashMap<>();
-                       params.put("x-api-key", AppConfig.apiKey);
-                       return params;
-                   }
-               };
-               queue.add(sr);
-           }
+                    if (resumePosition != 0 && simpleExoPlayer != null) {
+                        simpleExoPlayer.seekTo(resumePosition);
+                    }
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("x-api-key", AppConfig.apiKey);
+                        return params;
+                    }
+                };
+                queue.add(sr);
+            }
 
         } else {
             subContentID.set(sourceID);
 
             RequestQueue queue = Volley.newRequestQueue(context);
-            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url +"/api/get_subtitle.php?content_id="+subContentID.get()+"&ct="+ct, response -> {
+            StringRequest sr = new StringRequest(Request.Method.POST, AppConfig.url + "/api/get_subtitle.php?content_id=" + subContentID.get() + "&ct=" + ct, response -> {
 
-                if(!response.equals("No Data Avaliable")) {
+                if (!response.equals("No Data Avaliable")) {
                     JsonArray jsonArray = new Gson().fromJson(response, JsonArray.class);
                     int count = 0;
                     for (JsonElement rootElement : jsonArray) {
@@ -1865,33 +1821,33 @@ public class Player extends AppCompatActivity {
                         JsonObject rootObject = rootElement.getAsJsonObject();
 
                         MediaItem.Subtitle subtitle = null;
-                        if(rootObject.get("mime_type").getAsString().equals("WebVTT")) {
-                            subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
-                        } else if(rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
-                            subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
-                        } else if(rootObject.get("mime_type").getAsString().equals("SubRip")) {
-                            subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
-                        } else if(rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
-                            subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
+                        if (rootObject.get("mime_type").getAsString().equals("WebVTT")) {
+                            subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_VTT, rootObject.get("language").getAsString());
+                        } else if (rootObject.get("mime_type").getAsString().equals("TTML") || rootObject.get("mime_type").getAsString().equals("SMPTE-TT")) {
+                            subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_TTML, rootObject.get("language").getAsString());
+                        } else if (rootObject.get("mime_type").getAsString().equals("SubRip")) {
+                            subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                        } else if (rootObject.get("mime_type").getAsString().equals("SubStationAlpha-SSA)") || rootObject.get("mime_type").getAsString().equals("SubStationAlpha-ASS)")) {
+                            subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.TEXT_SSA, rootObject.get("language").getAsString());
                         } else {
-                            subtitle = new  MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
+                            subtitle = new MediaItem.Subtitle(Uri.parse(rootObject.get("subtitle_url").getAsString()), MimeTypes.APPLICATION_SUBRIP, rootObject.get("language").getAsString());
                         }
 
                         MediaSource textMediaSource = new SingleSampleMediaSource.Factory(factory).createMediaSource(subtitle, C.TIME_UNSET);
 
-                        if(nMediaSource == null) {
+                        if (nMediaSource == null) {
                             nMediaSource = new MergingMediaSource(mediaSource, textMediaSource);
                         } else {
                             nMediaSource = new MergingMediaSource(nMediaSource, textMediaSource);
                         }
 
-                        if(count == jsonArray.size()) {
-                            if(nMediaSource != null) {
+                        if (count == jsonArray.size()) {
+                            if (nMediaSource != null) {
                                 simpleExoPlayer.setMediaSource(nMediaSource);
                                 simpleExoPlayer.prepare();
                                 simpleExoPlayer.setPlayWhenReady(true);
 
-                                if(resumePosition != 0 && simpleExoPlayer != null) {
+                                if (resumePosition != 0 && simpleExoPlayer != null) {
                                     simpleExoPlayer.seekTo(resumePosition);
                                 }
                             } else {
@@ -1899,7 +1855,7 @@ public class Player extends AppCompatActivity {
                                 simpleExoPlayer.prepare();
                                 simpleExoPlayer.setPlayWhenReady(true);
 
-                                if(resumePosition != 0 && simpleExoPlayer != null) {
+                                if (resumePosition != 0 && simpleExoPlayer != null) {
                                     simpleExoPlayer.seekTo(resumePosition);
                                 }
                             }
@@ -1910,7 +1866,7 @@ public class Player extends AppCompatActivity {
                     simpleExoPlayer.prepare();
                     simpleExoPlayer.setPlayWhenReady(true);
 
-                    if(resumePosition != 0 && simpleExoPlayer != null) {
+                    if (resumePosition != 0 && simpleExoPlayer != null) {
                         simpleExoPlayer.seekTo(resumePosition);
                     }
                 }
@@ -1919,13 +1875,13 @@ public class Player extends AppCompatActivity {
                 simpleExoPlayer.prepare();
                 simpleExoPlayer.setPlayWhenReady(true);
 
-                if(resumePosition != 0 && simpleExoPlayer != null) {
+                if (resumePosition != 0 && simpleExoPlayer != null) {
                     simpleExoPlayer.seekTo(resumePosition);
                 }
             }) {
                 @Override
                 public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String,String> params = new HashMap<>();
+                    Map<String, String> params = new HashMap<>();
                     params.put("x-api-key", AppConfig.apiKey);
                     return params;
                 }
@@ -1934,14 +1890,7 @@ public class Player extends AppCompatActivity {
         }
 
 
-
-
-
-
-
-
-
-         simpleExoPlayer.addListener(new com.google.android.exoplayer2.Player.EventListener() {
+        simpleExoPlayer.addListener(new com.google.android.exoplayer2.Player.EventListener() {
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
@@ -1993,11 +1942,12 @@ public class Player extends AppCompatActivity {
 
     }
 
-    private void pausePlayer(){
+    private void pausePlayer() {
         simpleExoPlayer.setPlayWhenReady(false);
         simpleExoPlayer.getPlaybackState();
     }
-    private void startPlayer(){
+
+    private void startPlayer() {
         simpleExoPlayer.setPlayWhenReady(true);
         simpleExoPlayer.getPlaybackState();
     }
@@ -2011,7 +1961,6 @@ public class Player extends AppCompatActivity {
         }
     }
 
-    Boolean isBackPressed = false;
     @Override
     public void onBackPressed() {
         isBackPressed = true;
@@ -2023,7 +1972,7 @@ public class Player extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(!isBackPressed) {
+        if (!isBackPressed) {
             pausePlayer();
         }
 
@@ -2050,7 +1999,7 @@ public class Player extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if(!AppConfig.allowVPN) {
+        if (!AppConfig.allowVPN) {
             //check vpn connection
             helperUtils = new HelperUtils(Player.this);
             vpnStatus = helperUtils.isVpnConnectionAvailable();
@@ -2066,11 +2015,44 @@ public class Player extends AppCompatActivity {
 
         wakeLock.release();
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+    }
+
+    public class MyWebViewClient extends WebViewClient {
+        @Override
+        public WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, WebResourceRequest request) {
+
+            if (source.equals("StreamSB")) {
+                if (request.getUrl().toString().toLowerCase().contains(streamSBMatcher)) {
+                    streamSBParams = request.getRequestHeaders();
+                    shouldInterceptRequestURL = request.getUrl().toString();
+
+                }
+            } else if (source.equals("Voesx")) {
+                if (request.getUrl().toString().toLowerCase().contains(".m3u8")) {
+                    shouldInterceptRequestURL = request.getUrl().toString();
+                }
+            } else if (source.equals("Videobin")) {
+                if (request.getUrl().toString().toLowerCase().contains(".mp4")) {
+                    shouldInterceptRequestURL = request.getUrl().toString();
+                }
+            } else if (source.equals("Dropbox")) {
+                if (request.getUrl().toString().toLowerCase().contains(".m3u8")) {
+                    shouldInterceptRequestURL = request.getUrl().toString();
+                }
+            } else if (source.equals("TwitchLive")) {
+                if (request.getUrl().toString().toLowerCase().contains(".m3u8")) {
+                    shouldInterceptRequestURL = request.getUrl().toString();
+                }
+            }
+
+            return super.shouldInterceptRequest(view, request);
         }
     }
 }

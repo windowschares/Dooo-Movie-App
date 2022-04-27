@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/bottom_sheet_container"
+    android:layout_width="match_parent"
+    android:background="@drawable/btm_bckground"
+    android:layout_height="wrap_content">
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:text="Settings"
+    android:layout_gravity="center"
+    android:textColor="@color/white"
+    android:textStyle="bold"
+    android:padding="15dp"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/Divider"/>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dp">
+    <TextView
+        android:id="@+id/pip_disable_text"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="15dp"
+        android:layout_gravity="center"
+        android:fontFamily="@font/roboto_bold"
+        android:layout_marginStart="30dp"
+        android:text="Disable Pip"
+        />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/disable_pip"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="210dp"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/Divider"/>
+    <LinearLayout
+        android:id="@+id/fullscreen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp">
+        <TextView
+            android:id="@+id/full_screen_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:layout_gravity="center"
+            android:fontFamily="@font/roboto_bold"
+            android:layout_marginStart="30dp"
+            android:text="Enable Fullscreen"
+            />
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/Enable_fullscreen"
+            android:layout_width="wrap_content"
+            android:layout_marginStart="170dp"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/Divider"/>
+    <LinearLayout
+        android:id="@+id/play_mx"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp"
+        android:padding="5dp">
+        <TextView
+            android:id="@+id/Play_via_MX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:layout_gravity="center"
+            android:fontFamily="@font/roboto_bold"
+            android:layout_marginStart="30dp"
+            android:text="Play with Mxplayer"
+            />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="170dp"
+            android:src="@drawable/ic_baseline_airplay_24"
+            />
+    </LinearLayout>
+
+</LinearLayout>
