@@ -718,21 +718,25 @@ public class Player extends AppCompatActivity {
 external_player.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View view) {
-        if(Mx_PlayerURl!=null) {
-            packageManager=getPackageManager();
-            try {
-                intent = packageManager.getLaunchIntentForPackage("com.mxtech.videoplayer.ad");
-                if(null!=intent) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    Uri videoUri = Uri.parse(Mx_PlayerURl);
-                    intent.setDataAndType(videoUri, "video/*");
-                    intent.setPackage("com.mxtech.videoplayer.ad");
-                    startActivity(intent);
-                }
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(context, "MXplayer Free Not found", Toast.LENGTH_SHORT).show();
-            }
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        String appPackageName="com.mxtech.videoplayer.ad";
+        intent.setPackage("com.mxtech.videoplayer.ad");
+        intent.setClassName("com.mxtech.videoplayer.ad", "com.mxtech.videoplayer.ad.ActivityScreen");
+        Uri videoUri = Uri.parse(cpUrl);
+        intent.setDataAndType(videoUri, "application/x-mpegURL");
+        intent.setPackage("com.mxtech.videoplayer.pro"); // com.mxtech.videoplayer.pro
+        intent.putExtra("return_result", true);
+        try{
+            if(null!=intent)
+                startActivity(intent);
         }
+        catch (ActivityNotFoundException e)
+        {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            Toast.makeText(context, "You need MX player app. redirecting.Install Now from Play store", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 });
 
