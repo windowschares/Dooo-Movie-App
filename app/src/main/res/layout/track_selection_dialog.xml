@@ -18,7 +18,8 @@
             android:layout_height="wrap_content"
             app:tabGravity="fill"
             app:tabMode="fixed"
-            android:background="@color/Red_Smooth"/>
+            app:tabTextColor="@color/white"
+            android:background="@color/Home_TitleBar_BG"/>
 
     </androidx.viewpager.widget.ViewPager>
 

@@ -74,6 +74,15 @@
     android:src="@drawable/exo_styled_controls_settings"
     android:layout_marginEnd="65dp"
     />
+            <ImageView
+                android:id="@+id/subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/exo_ic_subtitle_on"
+                android:layout_marginEnd="65dp"
+                />
+
+
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <LinearLayout

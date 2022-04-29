@@ -4,12 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.media.SoundPool;
+import android.media.audiofx.LoudnessEnhancer;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Build;
@@ -18,6 +22,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +34,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -127,9 +133,13 @@ public class Player extends AppCompatActivity {
     ImageView open_popup;
     int skip_available;
     String intro_start;
+    PackageManager packageManager;
     String intro_end;
+    Intent intent;
     Button Skip_Intro_btn;
     String ContentType = null;
+    SoundPool soundPool;
+
     int Current_List_Position = 0;
     Button Play_Next_btn;
     String Next_Ep_Avilable;
@@ -143,14 +153,18 @@ public class Player extends AppCompatActivity {
     String mContentType = "";
     int wsType;
     int sourceID;
+    boolean locked = true;
+
     int ct;
     MergingMediaSource nMediaSource = null;
     PowerManager.WakeLock wakeLock;
     int maxBrightness;
     String shouldInterceptRequestURL = "";
     String source;
+    AudioManager audioManager;
     int contentID;
     String cpUrl = "";
+    String Mx_PlayerURl = cpUrl;
     Map<String, String> streamSBParams = new HashMap<String, String>();
     Boolean isBackPressed = false;
     private DoubleTapPlayerView playerView;
@@ -533,11 +547,16 @@ public class Player extends AppCompatActivity {
                 Toasty.warning(this, "Please Wait! Content Not Loaded.", Toast.LENGTH_SHORT, true).show();
             }
         });
+        ImageView subtitle =findViewById(R.id.subtitle);
+
+        subtitle.setOnClickListener(view ->
+        {
+        });
+
 
         ////
         factory = new DefaultDataSourceFactory(this,
                 Util.getUserAgent(this, "KAIOS"));
-
 
         ImageView Back_btn_img = findViewById(R.id.Back_btn_img);
         Back_btn_img.setOnClickListener(new View.OnClickListener() {
@@ -684,9 +703,69 @@ public class Player extends AppCompatActivity {
         LinearLayout sheetView =findViewById(R.id.bottom_sheet_id);
         SwitchCompat disable_pip = bottomSheetDialog.findViewById(R.id.disable_pip);
         SwitchCompat Enable_fullscreen = bottomSheetDialog.findViewById(R.id.Enable_fullscreen);
+        SharedPreferences sharedPreferences = getSharedPreferences("save", MODE_PRIVATE);
+
         ImageView external_player = bottomSheetDialog.findViewById(R.id.external_player);
         bottomSheetDialog.show();
+
+        disable_pip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+            }
+        });
+
+external_player.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        if(Mx_PlayerURl!=null) {
+            packageManager=getPackageManager();
+            try {
+                intent = packageManager.getLaunchIntentForPackage("com.mxtech.videoplayer.ad");
+                if(null!=intent) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    Uri videoUri = Uri.parse(Mx_PlayerURl);
+                    intent.setDataAndType(videoUri, "video/*");
+                    intent.setPackage("com.mxtech.videoplayer.ad");
+                    startActivity(intent);
+                }
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(context, "MXplayer Free Not found", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+});
+
+
+        if (Enable_fullscreen != null) {
+            Enable_fullscreen.setChecked(sharedPreferences.getBoolean("value",true));
+        }
+        if (Enable_fullscreen != null) {
+            Enable_fullscreen.setOnClickListener(view ->
+          {
+              if(Enable_fullscreen.isChecked())
+              {
+                  playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+                  SharedPreferences.Editor editor = getSharedPreferences("Save",MODE_PRIVATE).edit();
+                  editor.putBoolean("value",true);
+                  editor.apply();
+                  Enable_fullscreen.setChecked(true);
+              }
+              else{
+                  playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+                  SharedPreferences.Editor editor = getSharedPreferences("Save",MODE_PRIVATE).edit();
+                  editor.putBoolean("value",false);
+                  editor.apply();
+                  Enable_fullscreen.setChecked(false);
+              }
+
+          });
+        }
+
+    }
+
+
+
 
     int getMaxBrightness(Context context, int defaultValue) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -2056,4 +2135,7 @@ public class Player extends AppCompatActivity {
             return super.shouldInterceptRequest(view, request);
         }
     }
+
+
+
 }
