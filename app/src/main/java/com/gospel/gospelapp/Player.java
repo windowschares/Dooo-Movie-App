@@ -35,6 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
@@ -300,20 +301,10 @@ public class Player extends AppCompatActivity {
         playerView = findViewById(R.id.player_view);
 
         open_popup=findViewById(R.id.open_popup);
-        open_popup.setOnClickListener(view ->
-        {
-            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(
-                    Player.this,R.style.BottomSheetDialogTheme);
-            View BottomSheetView = LayoutInflater.from(getApplicationContext()).
-                    inflate(R.layout.layout_bottomsheet,(LinearLayout)findViewById(R.id.bottom_sheet_container));
-//            BottomSheetView.findViewById(R.id.disable_pip).setOnClickListener(view1 ->
-//                    {
-//                        Toast.makeText(context, "test", Toast.LENGTH_SHORT).show();
-//                        bottomSheetDialog.dismiss();
-//                    });
-            bottomSheetDialog.setContentView(BottomSheetView);
-            bottomSheetDialog.show();
-        });
+       open_popup.setOnClickListener(view ->
+       {
+           open_bottom_sheet();
+       });
         youtube_overlay = findViewById(R.id.ytOverlay);
         youtube_overlay.performListener(new YouTubeOverlay.PerformListener() {
             @Override
@@ -685,6 +676,16 @@ public class Player extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void open_bottom_sheet() {
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(R.layout.layout_bottomsheet);
+        LinearLayout sheetView =findViewById(R.id.bottom_sheet_id);
+        SwitchCompat disable_pip = bottomSheetDialog.findViewById(R.id.disable_pip);
+        SwitchCompat Enable_fullscreen = bottomSheetDialog.findViewById(R.id.Enable_fullscreen);
+        ImageView external_player = bottomSheetDialog.findViewById(R.id.external_player);
+        bottomSheetDialog.show();
     }
 
     int getMaxBrightness(Context context, int defaultValue) {
